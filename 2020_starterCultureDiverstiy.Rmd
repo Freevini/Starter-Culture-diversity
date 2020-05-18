@@ -1,0 +1,3213 @@
+---
+title: "starterCultureDiversiy_metagenome"
+author: "Vincent Somerville"
+date: "18/12/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+##Setup
+
+```{r setup ,echo=FALSE}
+knitr::opts_chunk$set(message=FALSE, echo=FALSE, eval=FALSE)
+
+```
+
+#Wetlab
+#### colony pick genotypes
+
+```{r}
+library(readr)
+library(plyr)
+library(tidyverse)
+library(ggplot2)
+strain_counts_of_plates <- read_delim("~/Desktop/Projects/2020_strainDelineation/01_logs/GENOTYPE_count.csv",  "\t", escape_double = FALSE, trim_ws = TRUE)
+
+# strain_counts_of_plates$sample <-
+strain_counts_of_plates$`starter culture` <-  as.character(strain_counts_of_plates$`starter culture`)
+strain_counts_of_plates$genotypes_extended <- paste(strain_counts_of_plates$`starter culture`,strain_counts_of_plates$species,strain_counts_of_plates$genotype,sep="_")
+# ggplot(strain_counts_of_plates,aes(x=`starter culture`,color=genotype,fill=genotype))+geom_bar(aes(y=(..counts..)/sum(..counts..)),stat="identity")+facet_wrap(~species,scales = "free")
+genotypePlot <- ggplot(strain_counts_of_plates,aes(x=`starter culture`,color=genotype,fill=genotype,text =paste("genotype:", genotypes_extended)))+geom_bar(aes(y=count),stat="identity")+labs(x="",y="genotype counts")+facet_wrap(~species,scales = "free")+theme_classic()+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9))
+genotypePlot
+
+table(interaction(strain_counts_of_plates$genotype,strain_counts_of_plates$species))
+grep("NA",strain_counts_of_plates$genotypes_extended,invert = TRUE) %>% length()
+grep("NA",strain_counts_of_plates$genotypes_extended,invert = TRUE) %>% length()
+strain_counts_of_plates[grep("NA",strain_counts_of_plates$genotypes_extended,invert = TRUE),] %>% filter(species=="S_thermophilus") %>% nrow()
+strain_counts_of_plates[grep("NA",strain_counts_of_plates$genotypes_extended,invert = TRUE),] %>% filter(species=="L_delbrueckii") %>% nrow()
+
+ svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/genotypeAbundance.svg",width=6,height=3)
+
+
+genotypePlot+theme(legend.position = "none")
+
+dev.off()
+
+
+library(plotly)
+ggp <- ggplotly(genotypePlot)
+htmlwidgets::saveWidget(ggp, "~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/genotypeAbundance.html")
+
+unique(strain_counts_of_plates$genotypes_extended)
+strain_counts_of_plates$genotypes_extended <- revalue(strain_counts_of_plates$genotypes_extended,c("RMK101_L_delbrueckii_A"="dominant","RMK105_L_delbrueckii_B"="dominant","RMK115_L_delbrueckii_B"="dominant","RMK124_L_delbrueckii_J"="dominant","RMK150_L_delbrueckii_J"="dominant","RMK190_L_delbrueckii_B" ="dominant", "RMK202_L_delbrueckii_T"="dominant", "RMK203_L_delbrueckii_J"="dominant", "RMK280_L_delbrueckii_R"="dominant","RMK302_L_delbrueckii_B"="dominant","RMK305_L_delbrueckii_H"="dominant", "RMK101_S_thermophilus_a"="dominant","RMK105_S_thermophilus_c"="dominant","RMK115_S_thermophilus_c"="dominant","RMK124_S_thermophilus_e"="dominant","RMK150_S_thermophilus_a"="dominant", "RMK190_S_thermophilus_I"="dominant", "RMK202_S_thermophilus_p"="dominant","RMK203_S_thermophilus_l"="dominant","RMK280_S_thermophilus_m"="dominant", "RMK302_S_thermophilus_s"="dominant","RMK305_S_thermophilus_e"="dominant")) 
+strain_counts_of_plates$genotypes_extended <- ifelse(strain_counts_of_plates$genotypes_extended=="dominant","dominant","subdominant")
+strain_counts_of_plates$genotype_dominant <- NA
+for (i in 1:nrow(strain_counts_of_plates)) {
+  strain_counts_of_plates[i,"genotype_dominant"] <- ifelse(strain_counts_of_plates[i,"genotypes_extended"]=="dominant",as.character(strain_counts_of_plates[i,"genotype"]),NA)
+  
+}
+
+strain_counts_of_plates$names <- as.character(gsub("RMK","",strain_counts_of_plates$`starter culture`))
+genotypePlot <- ggplot(strain_counts_of_plates,aes(x=names,fill=genotype_dominant,color=genotype,text =paste("genotype:", genotypes_extended)))+geom_bar(aes(y=count),stat="identity", colour="#FF9999")+labs(x="",y="colony counts")+facet_wrap(~species,scales = "free")+theme_classic()+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),legend.position = "none")+scale_fill_discrete(na.value="grey81")
+genotypePlot
+
+ # png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/genotypeAbundance_onlyDominant.png", width = 2400, height = 1200,res=300)
+svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/genotypeAbundance_onlyDominant.svg",width=6,height=3)
+
+
+genotypePlot
+
+dev.off()
+
+###---------------------
+##for mid-thesis
+
+genotypePlot <- ggplot(strain_counts_of_plates,aes(x=names,fill=genotype_dominant,color=genotype,text =paste("genotype:", genotypes_extended)))+geom_bar(aes(y=count),stat="identity", colour="#FF9999")+labs(x="",y="colony counts")+facet_wrap(~species,scales = "free",nrow = 2)+theme_classic()+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),legend.position = "none")+scale_fill_discrete(na.value="grey81")+scale_y_continuous(breaks =c(0,25,50,75,96),labels=c(0,25,50,75,96))
+genotypePlot
+
+ # png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/genotypeAbundance_onlyDominant.png", width = 2400, height = 1200,res=300)
+svg("~/Desktop/mid_thesis/report/figures/20200430/chapter3/genotypeAbundance_onlyDominant.svg",width=2.5,height=5)
+
+
+genotypePlot
+
+dev.off()
+
+
+```
+
+##Cell counts
+Here, I first download the cell counts sheet from google sheets. 
+This sheet also includes the columns abount the generation time, doubling time and survival rate. 
+From this information I plot the following parameters
+
+```{r}
+##----------------------
+##import data
+##----------------------
+library(readr)
+library(ggplot2)
+library(plyr)
+library(tidyverse)
+library(patchwork)
+CellCount <- read_csv("~/Desktop/Projects/2020_StarterEvolutionExperiment/01_cellCount/rmk202_test_cellCounts.csv", skip = 2)
+
+CellCount$step <- revalue(CellCount$step,c("first_passage"="first passage","second_passage"="second passage","freeze_dry"="freeze dry &\nstorage"))
+
+
+
+##----------------------
+##generation
+##----------------------
+colnames(CellCount)
+table(CellCount$step)
+CellCount_generations <- CellCount %>% filter(step %in% c("first passage","second passage")) %>% filter(!is.na(generations_all)) %>% select(c(sample,treatment,step,generations_all,generations_sterm,generations_ldel)) %>% gather(., sample, generations, c(generations_all,generations_sterm,generations_ldel), factor_key=TRUE,na.rm = TRUE) 
+colors <- c("grey","#EB4D4D","#10B552")
+CellCount_generations$sample <- revalue(CellCount_generations$sample,c("generations_all"="All","generations_sterm"="S. thermophilus","generations_ldel"="L. delbrueckii"))
+
+generationsPlot <- ggplot(CellCount_generations,aes(x=step,y=generations,fill=sample))+geom_boxplot()+theme_classic()+theme(legend.title = element_blank(),legend.position = "top",axis.title.x = element_blank())+scale_fill_manual(values=colors)
+
+##----------------------
+##survival rate
+##----------------------
+
+colnames(CellCount)
+table(CellCount$step)
+CellCount_survival <- CellCount %>% filter(step %in% c("freeze dry &\nstorage")) %>% filter(!is.na(generations_all)) %>% select(c(sample,treatment,step,survival_rate_all,survival_rate_sterm,survival_rate_ldel)) %>% gather(., sample, "survival rate", c(survival_rate_all,survival_rate_sterm,survival_rate_ldel), factor_key=TRUE,na.rm = TRUE) %>% filter(sample!="survival_rate_ldel")
+colors <- c("grey","#EB4D4D","#10B552")
+CellCount_survival$`survival rate`
+CellCount_survival$sample <- revalue(CellCount_survival$sample,c("survival_rate_all"="All","survival_rate_sterm"="S. thermophilus","survival_rate_ldel"="L. delbrueckii"))
+
+SurvivalPlot <- ggplot(CellCount_survival,aes(x=step,y=`survival rate`,fill=sample))+geom_boxplot()+theme_classic()+theme(legend.title = element_blank(),legend.position = "top",axis.title.x = element_blank())+scale_fill_manual(values=colors)
+SurvivalPlot
+##----------------------
+##survival rate
+##----------------------
+
+
+
+svg("~/Desktop/mid_thesis/report/figures/20200430/chapter3/generations_survivalRate.svg",width=4,height=4)
+# png("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.png", width = 1800, height = 1600,res=300)
+generationsPlot+SurvivalPlot+ plot_layout(ncol=2,widths = c(2,0.8))
+dev.off()
+```
+
+
+##interaction prediction
+what does interaction look like
+
+```{r}
+
+library(readr)
+library(tidyverse)
+library(reshape2)
+starter_culture_interaction_matrix <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/starter_culture_interaction_matrix.csv", "\t", escape_double = FALSE, trim_ws = TRUE)
+
+starter_culture_interaction_matrix_new <- starter_culture_interaction_matrix %>% column_to_rownames(var="X1") %>% as.matrix %>% t()
+
+meltR = melt(starter_culture_interaction_matrix_new, id = "Portion")
+meltR$species1 <-  str_split_fixed(meltR$Var1, fixed(":"), 2)[,1]
+meltR$starterculture1 <-  str_split_fixed(meltR$Var1, fixed(":"), 2)[,2]
+meltR$species2 <-  str_split_fixed(meltR$Var2, fixed(":"), 2)[,1]
+meltR$starterculture2 <-  str_split_fixed(meltR$Var2, fixed(":"), 2)[,2]
+
+# creat Heatmap
+ggheatmap <- ggplot(meltR, aes(starterculture1, starterculture2, fill = value))+
+ geom_tile(color = "white",size=1.1)+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white",
+   midpoint = 0.75, limit = c(0,1), space = "Lab",
+   name="fitness") +
+  theme_minimal()+ # minimal theme
+  labs(x=expression(italic("S. thermophilus")),y=expression(italic("L. delbrueckii")))+
+ theme(axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed()
+# Print the heatmap
+print(ggheatmap)
+
+##save heatmap
+# svg("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.svg",width=2.5,height=2.5)
+png("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.png", width = 1800, height = 1600,res=300)
+print(ggheatmap)
+dev.off()
+
+```
+
+
+
+##Data preperation
+####Download Metagenomes
+
+```{bash}
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz
+mkdir -p /data/Project/2020_StarterCultureDiversity/99_log
+
+vim /data/Project/2020_StarterCultureDiversity/99_log/20200111_download.txt
+
+vim /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt
+
+##--------------download special case
+
+cd /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/
+
+wget -i /data/Project/2020_StarterCultureDiversity/99_log/20200111_download_new.txt
+
+http://gtf-owncloud.unil.ch/index.php/s/wWUzyjKJJOpe9y2/download?path=%2F&files=V42_S41_L002_R1_001.fastq.gz
+cp download?path=%2F&files=V42_S41_L002_R1_001.fastq.gz Lyo_105_76_5_13-4-R1.fastq.gz
+Lyo_105_76_5_13
+```
+
+
+
+####name change
+
+create a file with the labels and the names of the file in each a column
+
+```{bash}
+name=$(cut -d '/' -f 5 /data/Project/2020_StarterCultureDiversity/99_log/20200111_download.txt|head -1)
+name=$(cut -d '/' -f 5 /data/Project/2020_StarterCultureDiversity/99_log/20200111_download.txt|head -2|tail -1)
+#for name in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz |grep "^V")
+for name in $(cut -d '/' -f 5 /data/Project/2020_StarterCultureDiversity/99_log/20200111_download.txt)
+do
+
+  name_01=$(echo $name |cut -d '_' -f 1)
+  Lane=$(echo $name |cut -d '_' -f 2|sed 's/L//g')
+  Read=$(echo $name |cut -d '_' -f 3)  
+  
+  Lane_new=$((Lane+2))
+
+  newName=$(awk -F "\t" -v name="$name_01" '{if($2==name) {print $1}}' /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt)
+  
+  echo ${newName}"-L"${Lane_new}"-"${Read}".fastq.gz"
+    
+  mv /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${name} /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${newName}-${Lane_new}-${Read}.fastq.gz
+    
+    
+done
+##-------qualtiy control
+
+ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/|cut -d '-' -f 1|sort|uniq -c |wc -l
+ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/|cut -d '-' -f 1|sort|uniq -c 
+
+
+#rm /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/*-2-*.fastq.gz
+```
+
+
+
+concatenenat the fastq.gz files
+
+```{bash}
+rm -r /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz
+
+for name in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt)
+  do
+  names=$(echo ${name}"-")
+   echo ${names}
+  
+  forward_01=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-L1\-R1.fastq.gz")
+  forward_02=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-L2\-R1.fastq.gz")
+  forward_03=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-3\-R1.fastq.gz")
+  forward_04=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-4\-R1.fastq.gz")
+
+  
+  
+  cat /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${forward_01} \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${forward_02}  \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${forward_03} \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${forward_04} > \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz/${name}-R1.fastq.gz
+  
+  reverse_01=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-L1\-R2.fastq.gz")
+  reverse_02=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-L2\-R2.fastq.gz")
+  reverse_03=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-3\-R2.fastq.gz")
+  reverse_04=$(ls /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz| grep "$names"  |grep "\-4\-R2.fastq.gz")
+
+  cat /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${reverse_01} \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${reverse_02}  \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${reverse_03}  \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/01_rawdata/gz/${reverse_04}  > \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz/${name}-R2.fastq.gz
+  
+  done
+
+```
+
+
+
+####Adapter removal
+
+
+In the following we clip adaptors with [trim-galore](https://github.com/FelixKrueger/TrimGalore)
+
+```{bash trimGalore}
+threads=38
+      rm -r /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/gz
+      mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/gz
+  mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/{afterTrimgalore,logs}
+num=1
+for names in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt |head -25)
+  do
+  echo ${num}"/46  :" ${names}
+  num=$((num+1))
+  
+  
+  
+
+      trim_galore -paired -o /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/gz/ \
+        --fastqc_args "--outdir /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore/" \
+        /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz/${names}-R1.fastq.gz   \
+        /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/02_concatenate/gz/${names}-R2.fastq.gz
+        
+        
+        
+  done 
+  rm -r /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore//Multiqc
+  mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore//Multiqc
+    /home/vincent/.local/bin/multiqc /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore/ -o /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore//Multiqc
+
+scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/99_QCs/afterTrimgalore//Multiqc/multiqc_report.html /home/vincent/Desktop/Projects/2019_Nano_Meta/Illumina_analysis/
+
+
+```
+
+
+####KneadData
+
+Here, we filter out the cow genome contamination reads
+
+```{bash}
+
+##===================
+##remove reads
+##===================
+
+##--------------
+##experiment
+##--------------
+names=ws_101_19
+threads=38
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/fq/
+num=1
+for names in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt)
+  do
+  
+
+  echo ${num}"/37  :" ${names}
+  num=$((num+1))
+#rm -r /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/
+echo "unzipping..."
+
+#gunzip -c /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/gz/${names}-R1_val_1.fq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/fq/${names}-R1_val_1.fq
+#gunzip -c /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/gz/${names}-R2_val_2.fq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/fq/${names}-R2_val_2.fq
+echo "unzipped"
+echo "removing cow reads"
+
+
+
+kneaddata --max-memory 110000m --no-discordant -t 37 -p 37 --input /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/fq/${names}-R1_val_1.fq \
+  --input /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/03_trimGalore/fq/${names}-R2_val_2.fq \
+  -db /archiv/cowDB/mixed/20190520/cow_genomeANDmito_DB  \
+  --trimmomatic /home/vincent/Joanito/brain/Software/Trimmomatic-0.39/ \
+  --output /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/
+
+done
+
+###------------------------------------
+add rmk202 samples
+###------------------------------------
+
+cp /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change.txt /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt
+
+ for names in $(awk -F "\t" '{print $1}' /archiv/Projects/2019_RMK202_analysis/01_log/onlyMeta_samples_newNames.txt)
+ do
+
+ NewName=$(grep "${names}" /archiv/Projects/2019_RMK202_analysis/01_log/onlyMeta_samples_newNames.txt |awk -F "\t" '{print $2}')
+echo "transfer "$names" to " $NewName
+ mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${NewName}/
+  #cat /archiv/Projects/2019_pilotplant/01_rawData/02_mergedfastq/kneaddata/${names}/${names}/${names}*neaddata_paired_1.fastq > \
+ #   /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${NewName}/${NewName}-R1_val_1_kneaddata_paired_1.fastq
+ # cat /archiv/Projects/2019_pilotplant/01_rawData/02_mergedfastq/kneaddata/${names}/${names}/${names}*neaddata_paired_2.fastq  > \
+#/data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${NewName}/${NewName}-R2_val_2_kneaddata_paired_2.fastq
+
+
+grep "${names}" /archiv/Projects/2019_RMK202_analysis/01_log/onlyMeta_samples_newNames.txt |awk -F "\t" '{OFS="\t"} {print $2,$1}' >> /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt
+done
+
+```
+
+## Analysis
+
+###mOTUs
+
+```{bash}
+
+
+num=1
+for names in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt)
+  do
+  echo ${num}"/46  :" ${names}
+  num=$((num+1))
+  rm -r /data/Project/2020_StarterCultureDiversity/02_mOTU/${names}/
+
+  mkdir -p /data/Project/2020_StarterCultureDiversity/02_mOTU/${names}/
+ 
+/home/vincent/apps/mOTUs_v2/motus profile -f /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/${names}*neaddata_paired_1.fastq \
+  -r /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/${names}*neaddata_paired_2.fastq -o /data/Project/2020_StarterCultureDiversity/02_mOTU/${names}/ -t 37 -n ${names}_mOTU
+
+done
+
+
+###-------------------------------------
+##reduce data
+###-------------------------------------
+
+rm /data/Project/2020_StarterCultureDiversity/02_mOTU/all_mOTUs_prepforR.txt
+for names in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt)
+  do
+#  echo "-----------------------------------------"
+#  echo ${names}
+
+grep "^#" -v /data/Project/2020_StarterCultureDiversity/02_mOTU/${names}/* |grep -v "0.0000000000" |grep -v "sp." |awk -F "\t" -v sampless="${names}" 'BEGIN{OFS="\t"} {print $1, $2, sampless}' |sed 's/\[.*\]//g' |sed 's/-1/NA NA/g'|awk -F "\t" 'BEGIN{OFS="\t"} {print $1,$2,$3}' >> /data/Project/2020_StarterCultureDiversity/02_mOTU/all_mOTUs_prepforR.txt
+
+done
+
+scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/02_mOTU/all_mOTUs_prepforR.txt /home/vincent/Desktop/Projects/2019_Nano_Meta/Illumina_analysis/
+
+
+```
+naming
+```{r}
+###----------------------------
+##make a names file
+###----------------------------
+library(readr)
+library(plyr)
+library(tidyverse)
+motus_abundance <- read_delim("~/Desktop/Projects/2019_Nano_Meta/Illumina_analysis/all_mOTUs_prepforR.txt", "\t", escape_double = FALSE, col_names = c("species","abundance","sample"),trim_ws = TRUE)
+
+
+unique_samples <- motus_abundance$sample %>% unique()
+unique_samples_type <- str_split_fixed(unique_samples, "_", 5)[,1] #%>%  mutate(Valence = ifelse(Participant == 1:41, rep(0:2), 0))
+unique_samples_culture <- str_split_fixed(unique_samples, "_", 5)[,2]
+unique_samples_date <- str_split_fixed(unique_samples, "_", 3)[,3]
+
+unique_samples_dateNew <- c("2002 Jul",    "1977" ,     "1976 Mar 31" ,"1997 Apr 7" , "1975 Apr" ,   "2011 Mar 11" ,"1976 Apr 6" , "2019"   ,   "2017"  ,    "2011 Mar"  ,  "2019"  ,    "2019"   ,   "2016"    ,  "2013" ,     "2017"   ,   "2010 Feb" ,   "1976 Mar 12" ,"2019"    ,  "2019"  ,    "1975" ,     "2019"  , "2019"  ,    "2019"   ,   "2019"   ,   "2016"   ,   "1996 Jan" ,   "2016"   ,   "2008"  ,    "2018"  ,    "2014 Oct"  , "1995 Apr"  ,  "2009"   , "2019","1975" ,     "1976 Mai 11", "1976 Nov",   "1996 Jan","1976 Feb"  ,  "1976 Apr 2",  "1977","1976 Mai 13", "2016 Apr", "1976 Apr 1" , "1976"    ,  "1976 Apr" , "1976 Jan" )
+
+unique_samples_dateNew <- revalue(unique_samples_date,c("02_7"="2002 Jul",    "77"="1977" ,     "76_3_31"="1976 Mar 31" ,"76_4_7"="1976 Apr 7" ,"75_4" = "1975 Apr" ,   "11_3_11"="2011 Mar 11", "76_4_6"="1976 Apr 6" , "19"="2019"     ,   "11_5"= "2011 Mar"  ,   "16" ="2016"    , "13"= "2013" ,     "17"= "2017"   ,  "10_2"  = "2010 Feb" ,   "76_5_12"="1976 Mar 12"  ,   "75"= "1975"    ,   "96_1"   ="1996 Jan" ,     "08"= "2008"  ,   "14_10" =  "2014 Oct"  ,  "95_3" ="1995 Apr"  , "09" = "2009"   ,"76_5_11" = "1976 Mai 11","76_11" = "1976 Nov","76_2"="1976 Feb"  ,  "76_4_2" = "1976 Apr 2", "76_5_13"="1976 Mai 13", "16_4"= "2016 Apr",  "76_4_1"= "1976 Apr 1" ,  "76"="1976"    ,  "76_4"= "1976 Apr" ,"76_1" = "1976 Jan", "18"   ="2018" ,  "12","14" ="2014","96"="1996","18_01"="2018 Jan","18_02"="2018 Feb","12"="2012"))
+
+
+
+naming_DF <- data.frame(namesOLD=unique_samples,sampleType=unique_samples_type,CultureName=unique_samples_culture,SampleDateOld=unique_samples_date,SampleDateNew=unique_samples_dateNew)
+
+naming_DF$simpleNames <- revalue(naming_DF$namesOLD,c("FSK_101_75"="starter 1","Lyo_101_76_4_7"="starter 2","Lyo_101_77"="starter 3","Lyo_101_02_7"="starter 4","Lyo_101_10_2"="starter 5","Lyo_101_16"="starter 6","ws_101_19"="starter 7","FSK_105_75"="starter 1","Lyo_105_76_4_1"="starter 2","Lyo_105_76_4_2"="starter 3","FSK_105_76_4_6"="starter 4","Lyo_105_76_2"="starter 5","Lyo_105_76_1"="starter 6","Lyo_105_76_5_11"="starter 7","Lyo_105_76_5_13"="starter 8","Lyo_105_76_5_12"="starter 9","Lyo_105_76_3_31"="starter 10","Lyo_105_11_5"="starter 11","Ws_105_19"="starter 12","Lyo_115_09"="starter 1","Ws_115_19"="starter 2","FSK_124_75_4"="starter 1","Lyo_124_08"="starter 2", "Ws_124_19"="starter 3","Lyo_150_76_4"="starter 1","Lyo_150_76_11"="starter 2","Lyo_150_11_3_11"="starter 3","Lyo_150_14_10"="starter 4","Lyo_150_18"="starter 5","Ws_150_19"="starter 6","Lyo_190_95_3"="starter 1","Lyo_190_17"="starter 2","Ws_190_19"="starter 3","Lyo_202_96"="starter 1","Lyo_202_12"="starter 2","Lyo_202_14"="starter 3","S_202_14"="starter 4","Ws_202_18"="starter 5","S_202_18"="starter 6", "C_202_18_02"="starter 7","C_202_18_01"="starter 8","Lyo_203_77"="starter 1","Lyo_203_96_1"="starter 2","Lyo_203_16"="starter 3","Ws_203_19"="starter 4","Lyo_280_16"="starter 1","Lyo_280_16_4"="starter 2", "Ws_280_19"="starter 3","Lyo_302_13"="starter 1", "Ws_302_19"="starter 2","FSK_305_76"="starter 1", "Lyo_305_96_1"="starter 2","Lyo_305_17"="starter 3","Ws_305_19"="starter 4"))
+
+naming_DF$sampleType <- revalue(naming_DF$sampleType,c("ws"="Ws"))
+naming_DF$namesNew <- paste0(naming_DF$sampleType," RMK",naming_DF$CultureName,"\n",naming_DF$SampleDateNew)
+
+
+naming_DF <- naming_DF[order(unique_samples_culture, unique_samples_dateNew),]
+naming_DF$order <- 1:nrow(naming_DF)
+
+  write.csv(naming_DF,"~/Desktop/Projects/2020_StarterCultureDiversity/98_script/naming_file.csv")
+
+```
+
+
+```{r}
+###----------------------------
+##script
+###----------------------------
+
+library(readr)
+library(ggplot2)
+
+library(plyr)
+library(tidyverse)
+naming_DF <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/98_script/naming_file.csv")
+
+motus_abundance <- read_delim("/home/vincent/Desktop/Projects/2019_Nano_Meta/Illumina_analysis/all_mOTUs_prepforR.txt", "\t", escape_double = FALSE, col_names = c("species","abundance","sample"),trim_ws = TRUE)
+unique(motus_abundance$simpleNames)
+motus_abundance <- merge(motus_abundance,naming_DF,by.y = "namesOLD",by.x="sample",all.x = TRUE)
+motus_abundance$simpleNames = factor(motus_abundance$simpleNames, levels=c("starter 1",  "starter 2",  "starter 3" , "starter 4" , "starter 5",  "starter 6",  "starter 7" , "starter 8" , "starter 9" ,"starter 10" ,"starter 11"  ,"starter 12"))
+
+# motus_abundance <- motus_abundance[order(unique_samples_culture, unique_samples_dateNew),]
+# 
+# newNames <- setNames(naming_DF$namesNew,naming_DF$namesOLD)
+# motus_abundance$sample <- revalue(motus_abundance$sample, newNames)
+# motus_abundance$sample = factor(motus_abundance$sample, levels=c(as.character(naming_DF$namesNew)))
+# newNames <- setNames(as.character(naming_DF$CultureName),naming_DF$namesNew)
+# motus_abundance$culture <- revalue(as.character(motus_abundance$sample),newNames)
+# levels(motus_abundance$sample)
+motus_abundance$abundance <- 100*motus_abundance$abundance
+# motus_abundance$species <- 100*motus_abundance$abundance
+# dim(table(motus_abundance$species))
+
+
+motus_abundance$species = factor(motus_abundance$species, levels=c("Lactobacillus delbrueckii","Streptococcus thermophilus","Lactobacillus helveticus/gallinarum","Lactococcus raffinolactis"    , "Thermus thermophilus/parvatiensis"  ,"Cutibacterium acnes","Lactococcus lactis","Rothia mucilaginosa","Burkholderia gladioli","Streptococcus agalactiae", "Streptococcus parauberis" ,  "Lactobacillus fermentum/oris","Wohlfahrtiimonas chitiniclastica","Leuconostoc mesenteroides/suionicum","NA NA"))
+
+motus_abundance$species_new<- revalue(motus_abundance$species,c("Lactobacillus helveticus/gallinarum"="Lactobacillus helveticus","Lactococcus raffinolactis"="subdominant"    , "Thermus thermophilus/parvatiensis"="subdominant"   ,"Cutibacterium acnes"="subdominant" ,"Lactococcus lactis"="subdominant" ,"Rothia mucilaginosa"="subdominant" ,"Burkholderia gladioli"="subdominant" ,"Streptococcus agalactiae"="subdominant" , "Streptococcus parauberis"="subdominant"  ,  "Lactobacillus fermentum/oris"="subdominant" ,"Wohlfahrtiimonas chitiniclastica"="subdominant" ,"Leuconostoc mesenteroides/suionicum"="subdominant" ,"NA"="subdominant","NA NA"="subdominant"))
+
+motus_abundance[is.na(motus_abundance$species_new),"species_new"] <- "subdominant"
+
+
+
+all_colours <- (c("#10B552","#EB4D4D","gold","grey") ) 
+
+  library(viridis)
+colorRest <- viridis_pal(option = "D")(12) 
+
+# all_colours <- (c("#EB4D4D","#10B552", "grey51",colorRest) ) 
+
+
+
+##--------------------
+##ploting
+
+motus_abundance
+pMOTUs <-  ggplot( data = motus_abundance,aes(y = abundance, x = simpleNames, group=species_new,fill = species_new))+ geom_bar( stat="identity")+
+  facet_wrap(~CultureName,scales = "free")+
+    labs("",
+         x="",
+         y="relative Abundance")+
+    theme_classic()+
+   # scale_color_viridis(discrete=TRUE)+
+  scale_fill_manual(values=all_colours)+
+  scale_color_manual(values=all_colours)+
+  # scale_fill_viridis(discrete=TRUE)+
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=3),
+      #axis.text.x = element_blank(),
+          legend.position="right",
+          #legend.justification=c(1,1), legend.position=c(1,1),
+          legend.title = element_blank()
+          )
+
+  pMOTUs
+  
+  
+  
+  
+
+  
+##=========================
+##split cheese
+##=========================
+
+  ##------------
+  ##emmentaler
+  ##------------ 
+  
+ motus_abundance_ementaler <- motus_abundance %>% filter(CultureName %in% c("101","105","115","124","150","190")) 
+pMOTUs_emmentaler <-  ggplot( data = motus_abundance_ementaler,aes(y = abundance, x = simpleNames, group=species_new,fill = species_new))+ geom_bar( stat="identity")+
+  facet_wrap(~CultureName,scales = "free",ncol = 6)+
+    # facet_wrap(~CultureName,scales = "free", labeller = label_wrap_gen(multi_line=FALSE))+
+    labs("",
+         x="",
+         y="")+
+    theme_classic()+
+   # scale_color_viridis(discrete=TRUE)+
+  scale_fill_manual(values=all_colours)+
+  scale_color_manual(values=all_colours)+
+  # scale_fill_viridis(discrete=TRUE)+
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=3),
+      #axis.text.x = element_blank(),
+          legend.position="none",
+          #legend.justification=c(1,1), legend.position=c(1,1),
+          legend.title = element_blank()
+          )
+
+  pMOTUs_emmentaler
+  
+  ##------------
+  ##Gruyere
+  ##------------ 
+  
+ motus_abundance_gruyere <- motus_abundance %>% filter(CultureName %in% c("202","203","280")) 
+pMOTUs_gruyere <-  ggplot( data = motus_abundance_gruyere,aes(y = abundance, x = simpleNames, group=species_new,fill = species_new))+ geom_bar( stat="identity")+
+  facet_wrap(~CultureName,scales = "free",ncol = 6)+
+    # facet_wrap(~CultureName,scales = "free", labeller = label_wrap_gen(multi_line=FALSE))+
+    labs("",
+         x="",
+         y="relative Abundance")+
+    theme_classic()+
+   # scale_color_viridis(discrete=TRUE)+
+  scale_fill_manual(values=all_colours)+
+  scale_color_manual(values=all_colours)+
+  # scale_fill_viridis(discrete=TRUE)+
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=3),
+      #axis.text.x = element_blank(),
+          legend.position="none",
+          #legend.justification=c(1,1), legend.position=c(1,1),
+          legend.title = element_blank()
+          )
+
+  pMOTUs_gruyere
+  
+   ##------------
+  ##Gruyere
+  ##------------ 
+  
+ motus_abundance_Sbrinz <- motus_abundance %>% filter(CultureName %in% c("302","305")) 
+pMOTUs_brinz <-  ggplot( data = motus_abundance_Sbrinz,aes(y = abundance, x = simpleNames, group=species_new,fill = species_new))+ geom_bar( stat="identity")+
+  facet_wrap(~CultureName,scales = "free",ncol = 5)+
+    # facet_wrap(~CultureName,scales = "free", labeller = label_wrap_gen(multi_line=FALSE))+
+    labs("",
+         x="",
+         y="")+
+    theme_classic()+
+   # scale_color_viridis(discrete=TRUE)+
+  scale_fill_manual(values=all_colours)+
+  scale_color_manual(values=all_colours)+
+  # scale_fill_viridis(discrete=TRUE)+
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=3),
+      #axis.text.x = element_blank(),
+          legend.position="right",
+          #legend.justification=c(1,1), legend.position=c(1,1),
+          legend.title = element_blank(),
+      
+          )
+
+  pMOTUs_brinz
+  source("/home/vincent/Desktop/ScriptRepository/R_functions-master/R_functions/g_legend.R") ##for plotting only legends
+legend <- g_legend(pMOTUs_brinz)
+
+##--------------------
+##merge
+##--------------------
+library(patchwork)  
+  pMOTUs_emmentaler / pMOTUs_gruyere /pMOTUs_brinz
+  
+  
+  p1 <-  pMOTUs_emmentaler /
+     (pMOTUs_gruyere +  plot_spacer()+ plot_layout(ncol=2,widths = c(2.9, 3)))/
+    (pMOTUs_brinz +theme( legend.position="none") + plot_spacer()+ legend+ plot_spacer()+ plot_layout(ncol=4,widths = c(1.9,1,1, 2)))
+  p1
+  
+   svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/AbundanceSpecies_new.svg",width=9,height=7)
+   #png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/AbundanceSpecies_new.png", width = 1800, height = 1500,res=300)
+
+
+p1
+
+dev.off()
+```
+
+
+###mapping to RMK202
+
+
+
+```{bash}
+
+###================
+##description file
+###================
+cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt > /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames.txt
+threads=37
+samplesss=/data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames.txt ##the file with all sample names
+logFilelocation=/data/Project/2020_StarterCultureDiversity/99_log
+BaseLocation=/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref
+Assembly=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/FINAL_assembly_withPlasmids_PGAP/di_rmk202_MAG_reference_polished.fasta
+
+##!!!!!!!!!!!!!change names of Forward and Reverse reads
+
+###================
+##script
+###================
+##============
+##mapping to reference
+##============
+#bwa index $Assembly
+# name_folder=02_againstpolished_single_rmk202_final_kneaddata_withStrains 
+
+mkdir -p ${logFilelocation}
+
+num=1
+
+for names in $(cat ${samplesss})
+  do
+  echo ${num}"/16  :" ${names}
+  num=$((num+1))
+  rm -r ${BaseLocation}/${names}
+
+  mkdir -p ${BaseLocation}/${names}/bwaMapping2DB/
+  
+  
+ # bwa mem -t ${threads} /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/FINAL_assembly_withPlasmids/di_rmk202_MAG_reference_polished.fasta
+  bwa mem -t ${threads} ${Assembly} \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/${names}*neaddata_paired_1.fastq /data/Project/2020_StarterCultureDiversity/01_Data/20191218_metagenome/04_kneadData/${names}/${names}*neaddata_paired_2.fastq | samtools sort -@${threads} -O BAM -o ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam - 
+
+samtools view -b -f 4 ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam > ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted_unmapped.bam
+
+bedtools bamtofastq -i ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted_unmapped.bam -fq ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted_unmapped.fq
+
+rm ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted_unmapped.bam &
+
+##-----Qualimap
+
+mkdir -p ${BaseLocation}/${names}/bwaMapping2DB//bamqc
+
+qualimap bamqc -bam ${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam -outdir ${BaseLocation}/${names}/bwaMapping2DB//bamqc --java-mem-size=80G
+
+
+ mkdir -p ${BaseLocation}/log
+echo ${BaseLocation}"/"${names}"/bwaMapping2DB/bamqc" >> ${BaseLocation}/log/multiqc_logfile_finalGenome.txt
+   done 
+   
+   
+    rm -r ${BaseLocation}/MultiQC
+ 
+  mkdir -p ${BaseLocation}/MultiQC
+  
+  /home/vincent/.local/bin/multiqc --config /archiv/logs/multiQC_config.txt --file-list  ${BaseLocation}/log/multiqc_logfile_finalGenome.txt \
+    -o ${BaseLocation}/MultiQC
+
+#/home/vincent/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref/MultiQC/multiqc_report.html
+
+scp vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref/MultiQC/multiqc_report.html /Desktop/Projects/2019_Pilotplan/02_mapping2referenceDB/
+
+##-------------------------------------------------  
+##-----check read coverage
+##-------------------------------------------------  
+name_folder=02_againstpolished_single_rmk202_final_kneaddata_withStrains 
+threads=37
+names=Konserve_202
+
+
+num=1
+rm -r ${BaseLocation}/log/mappings.txt
+rm -r ${BaseLocation}/log/mappings_species.txt
+
+
+for names in $(cat ${samplesss})
+  do
+mapped=$(grep "     number of mapped reads = " ${BaseLocation}/${names}/bwaMapping2DB//bamqc/genome_results.txt  |cut -d '(' -f 2 | sed 's/%)//g')
+
+mapped_sterm=$(grep "CP046134" ${BaseLocation}/${names}/bwaMapping2DB//bamqc/genome_results.txt|sed 's/^[[:blank:]]*//g'|cut -f 4)
+mapped_ldel=$(grep "CP046131" ${BaseLocation}/${names}/bwaMapping2DB//bamqc/genome_results.txt|sed 's/^[[:blank:]]*//g'|cut -f 4)
+
+mkdir -p ${BaseLocation}/log
+echo -e ${names}"\tonlyMeta\t"${mapped} >> ${BaseLocation}/log/mappings.txt
+
+echo -e ${names}"\tLactobacillus delbrueckii\t"$mapped_ldel >> ${BaseLocation}/log/mappings_species.txt
+echo -e ${names}"\tStreptococcus thermophilusi\t"$mapped_sterm >> ${BaseLocation}/log/mappings_species.txt
+
+done
+
+##-------------------------------------------------  
+##move local
+##-------------------------------------------------  
+
+##bring together 
+
+cat /archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains_PGAP/log/mappings.txt \
+/archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_allRMKs202/log/mappings.txt > \
+/archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains_PGAP/log/mappings_final.txt
+
+
+scp vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref/log/mappings_species.txt Desktop/Projects/2019_Pilotplan/02_mapping2referenceDB/
+```
+
+
+```{r}
+naming_DF <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/98_script/naming_file.csv")
+###----------------------------
+##script
+###----------------------------
+library(readr)
+library(ggplot2)
+#library(plyr)
+
+species_coverage <- read_delim("/home/vincent/Desktop/Projects/2019_Pilotplan/02_mapping2referenceDB/mappings_species.txt", "\t", escape_double = FALSE, col_names = c("sample","species","coverage"),trim_ws = TRUE)
+
+species_coverage$sample
+
+newNames <- setNames(naming_DF$namesNew,naming_DF$namesOLD)
+species_coverage$sample <- revalue(species_coverage$sample, newNames)
+species_coverage$sample = factor(species_coverage$sample, levels=c(as.character(naming_DF$namesNew)))
+
+
+newNames <- setNames(as.character(naming_DF$CultureName),naming_DF$namesNew)
+species_coverage$culture <- revalue(as.character(species_coverage$sample),newNames)
+levels(species_coverage$culture)
+
+species_coverage$coverageLog <- log2(species_coverage$coverage)
+
+all_colours <- (c("#EB4D4D","#10B552") ) 
+
+
+
+##--------------------
+##ploting
+
+
+pMOTUs <-  ggplot( data = species_coverage,aes(y = coverage, x = sample, group=species,fill = culture,color=culture))+geom_point(size=2)+geom_hline(yintercept=250)+ # geom_bar( stat="identity")+
+  facet_wrap(~species,scales = "free_x")+
+   coord_trans(y="log10")+
+    labs("",
+         x="",
+         y="Coverage")+
+    theme_classic()+
+   scale_color_viridis(discrete=TRUE)+
+      scale_y_continuous(breaks =c(0,50,100,250,500,1000),labels=c(0,50,100,250,500,1000))+
+  scale_fill_manual(values=all_colours)+
+  scale_color_manual(values=all_colours)+
+  # scale_fill_viridis(discrete=TRUE)+
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=4),
+      #axis.text.x = element_blank(),
+          legend.position="right",
+          #legend.justification=c(1,1), legend.position=c(1,1),
+          # legend.title = element_blank()
+          )
+
+  pMOTUs
+
+  
+  
+  svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/CoverageSpecies.svg",width=5,height=5)
+   # png("~/Desktop/Manuscripts/2019_RMK202/Figures/F1_relativeAbundance.png", width = 1000, height = 800,res=300)
+
+pMOTUs
+
+dev.off()
+
+```
+
+
+
+#### SNP calling freebayes (K1)
+
+This is a good (blog)[https://bioinformatics-core-shared-training.github.io/cruk-summer-school-2017/Day2/vcf-intro.nb.html] on how to use freebayes and how to parse the output. 
+Finally I will do freebayes on all samples simultaniously. 
+
+Interesting output from column 11 on:
+
+GT	Genotype v :1
+DP	Read Depth  :1040
+DPR	Number of observation for each allele  : 1,1037
+RO	Reference allele observation count :1
+QR	Sum of quality of the reference observations :10
+AO	Alternate allele observation count :1037
+QA	Sum of quality of the alternate observations :36917
+GL	Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy
+
+Very nice [blog](http://www.ddocent.com/filtering/) illustrating good filtering practices.
+
+```{bash,eval=FALSE,echo=FALSE}
+
+
+###================
+##description file
+###================
+
+cut -f 1 /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames2change_with202.txt > /data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames.txt
+threads=37
+samplesss=/data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames.txt ##the file with all sample names
+logFilelocation=/data/Project/2020_StarterCultureDiversity/99_log
+BaseLocation=/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref
+Assembly=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/FINAL_assembly_withPlasmids_PGAP/di_rmk202_MAG_reference_polished.fasta
+
+###--------special
+FREEBAYES_out=freebayesOuput
+
+###================
+##script
+###================
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##-----------change read group
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+#name_folder=02_againstpolished_single_rmk202_final_kneaddata_withStrains 
+names=Lyo_202_2014
+###------------------adding readgroup to bam
+rm ${BaseLocation}/log/multiqc_logfile_bams.txt
+mkdir -p  ${BaseLocation}/log/
+  #for names in $(cat /archiv/Projects/2019_RMK202_analysis/01_log/names_extended.txt)
+  for names in $(cat ${samplesss})
+do
+echo ${names}
+
+java -jar /home/vincent/apps/picard/picard.jar AddOrReplaceReadGroups \
+       I=${BaseLocation}/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam \
+       O=${BaseLocation}/${names}/bwaMapping2DB/${names}_mapping2ref.bam \
+       RGID=${names} \
+       RGLB=lib1 \
+       RGPL=illumina \
+       RGPU=unit1 \
+       RGSM=${names}
+
+#rm /archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam
+
+echo ${BaseLocation}"/"${names}"/bwaMapping2DB/"${names}"_mapping2ref.bam " >> ${BaseLocation}/log/multiqc_logfile_bams.txt
+
+done
+
+
+
+
+##remove trailing whitespaces
+
+ sed -i 's/[ \t]*$//' ${BaseLocation}/log/multiqc_logfile_bams.txt
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##-----------check bam mapping
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+ for map in $(cat ${BaseLocation}/log/multiqc_logfile_bams.txt)
+    do
+    echo "----------------------------------------------------"
+    echo $map
+    samtools flagstat $map |grep "mapped ("
+    
+    done
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##-----------indexing file
+##--------------------------------------------------------------------------------------------------------------------------------------
+##need before freebayes parallel
+
+  for names in $(cat ${BaseLocation}/log/multiqc_logfile_bams.txt)
+do
+
+samtools index ${names}
+
+done
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##-----------SNP calling
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+#rm -r ${BaseLocation}/freebayesOuput_WithONT_notParallel_default
+#mkdir -p ${BaseLocation}/freebayesOuput_WithONT_notParallel_default
+
+
+  #  freebayes -F 0.05 -C 3 --min-coverage 30 --pooled-discrete \
+  #    --bam-list ${BaseLocation}/log/multiqc_logfile_bams.txt -f \
+  #    ${Assembly} > \
+  #   ${BaseLocation}/freebayesOuput_WithONT_notParallel_default/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf
+  
+##--------------------------------------------------------------------------------------------------------------------------------------
+##-----------SNP calling parallel
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+bwa index ${Assembly}
+  rm -r ${BaseLocation}/${FREEBAYES_out}
+  mkdir -p ${BaseLocation}/${FREEBAYES_out}
+ 
+  
+    freebayes-parallel <(/home/vincent/apps/freebayes/scripts/fasta_generate_regions.py $Assembly 100000) 36 -f ${Assembly} -C 5 --pooled-continuous --min-alternate-fraction 0.01 --min-coverage 10 --bam-list ${BaseLocation}/log/multiqc_logfile_bams.txt > ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf
+  
+  
+  grep "^#" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf |cut -f 1 |sort|uniq -c
+  
+##-------------zipping
+
+#bgzip -c /archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains/freebayesOuput_WithONT_02/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf > /archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains/freebayesOuput_WithONT_02/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf.gz
+#tabix -p  vcf /archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_K1_final/freebayesOuput_WithONT/variantCallsfreebayes_all.vcf.gz
+
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##------------vcftools filtering
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+
+###==============================1. Qualty filtering QC>30
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf --minQ 30 --recode --recode-INFO-all --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC  
+
+  grep "^#" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC.recode.vcf   |cut -f 1 |sort|uniq -c
+
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x.vcf  --counts2 --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC  
+
+###==============================4. hist-indel-len
+
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC.recode.vcf --hist-indel-len --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC
+
+###==============================2. remove indel
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC.recode.vcf --mac 1 --remove-indels --minQ 30 --recode --recode-INFO-all --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL
+
+  grep "^#" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf   |cut -f 1 |sort|uniq -c
+
+###==============================3. INFO
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf --missing-indv --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC  
+###==============================4. hist-indel-len
+
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf --hist-indel-len --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL
+
+grep "^#" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf |cut -f 1 |sort|uniq -c
+
+###==============================5. filter samples
+##1. only sites that actualy have a single count (--non-ref-ac-any 1)
+##2. only sites that are not in all different from the reference (HAS TO BE CHANGED AGAIN WITH THE RIGHT REF!!!!!) ##mutations that actually occur in the metagenome
+##3. only biallelic sites (--min-alleles 2 --max-alleles 2)
+
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf --indv C_202_18_02 --min-alleles 2 --recode --recode-INFO-all --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK202 
+
+mkdir -p ${BaseLocation}/${FREEBAYES_out}/prepedR/
+for culture in $(cut -d "_" -f 2 $samplesss|sort|uniq )
+do
+grep "$culture" $samplesss >  ${BaseLocation}/${FREEBAYES_out}/tmp.samples
+#total=$(wc -l ${BaseLocation}/${FREEBAYES_out}/tmp.samples|cut -d ' ' -f 1)
+vcftools --vcf ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf --keep ${BaseLocation}/${FREEBAYES_out}/tmp.samples --non-ref-ac-any 1 --max-non-ref-af 0.99 --min-alleles 2 --max-alleles 2 --recode --recode-INFO-all --out ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}
+
+grep "^##" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}.recode.vcf >  ${BaseLocation}/${FREEBAYES_out}/prepedR/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}_prepR.vcf
+
+
+#--non-ref-af and --max-non-ref-af
+done
+
+rm ${BaseLocation}/${FREEBAYES_out}/prepedR_merged/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK_allSamples_prepR.vcf
+mkdir -p ${BaseLocation}/${FREEBAYES_out}/prepedR_merged/
+for culture in $(cut -d "_" -f 2 $samplesss|sort|uniq )
+do
+
+cat ${BaseLocation}/${FREEBAYES_out}/prepedR/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}_prepR.vcf >> ${BaseLocation}/${FREEBAYES_out}/prepedR_merged/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}_prepR.vcf
+
+done
+
+bcftools query -f '%CHROM %POS [%AO/%DP\t]\n'  ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK${culture}.recode.vcf | head -3
+##--------------------------------------------------------------------------------------------------------------------------------------
+##------------prep for R
+##--------------------------------------------------------------------------------------------------------------------------------------
+
+
+#grep "^##" -v ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf >  ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_prepR.vcf
+
+
+##--------------------------------------------------------------------------------------------------------------------------------------
+##------------bring local
+##--------------------------------------------------------------------------------------------------------------------------------------
+mkdir -p /home/vincent/Desktop/Projects/2020_strainDelineation/05_SNP_called/raw_snps
+scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref/freebayesOuput/prepedR/ /home/vincent/Desktop/Projects/2020_strainDelineation/05_SNP_called/raw_snps/
+
+
+```
+
+
+##Add Information
+
+#####snpEff
+
+Here we do [snpEff](http://snpeff.sourceforge.net/SnpEff_manual.html#buildAddConfig).
+
+
+```{bash}
+
+
+###================
+##description file
+###================
+threads=37
+samplesss=/data/Project/2020_StarterCultureDiversity/99_log/20191228_sampleNames.txt ##the file with all sample names
+logFilelocation=/data/Project/2020_StarterCultureDiversity/99_log
+BaseLocation=/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref
+Assembly=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/FINAL_assembly_withPlasmids_PGAP/di_rmk202_MAG_reference_polished.fasta
+FREEBAYES_out=freebayesOuput
+sampleShort=PGAP_meta_all ##For st_thermophilus
+
+
+
+${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf
+
+
+##=======================================================================================================================
+##-----------------------------------------------all together----------------------------------------------
+##=======================================================================================================================
+##==================
+##Building Database
+##==================
+#/archiv/Projects/2018_Culturomics/genomes/Lactobacillus_delbrueckii_RMK202.fna
+#/archiv/Projects/2018_Culturomics/genomes/Streptococcus_thermophilus_RMK202.fna
+
+##-------------
+##01_add genome name to
+##-------------
+
+vim /home/vincent/miniconda2/share/snpeff-4.3.1t-2/snpEff.config
+#S_thermophilus_mag_rmk202.genome : S_thermophilus_mag_rmk202
+#L_delbrueckii_mag_rmk202.genome : L_delbrueckii_mag_rmk202
+#Streptococcus_phage_rmk202.genome : Streptococcus_phage_rmk202
+PGAP_meta_all.genome : PGAP_meta_all
+#PGAP_meta_all_StarterCultureDiversity.genome : PGAP_meta_all_StarterCultureDiversity
+##-------------
+#02_put genome fasta and gff into right directory:
+##-------------
+
+#sampleShort=S_thermophilus_mag_rmk202
+#sampleShort=CP046134 ##For st_thermophilus
+
+#/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/circlatorAfter//circlaring_ldel/final/L_delbrueckii_mag_rmk202.fasta 
+
+##-------------
+#03_put genome fasta 
+##-------------
+rm -r /home/vincent/miniconda2/share/snpeff-4.3.1t-2/data/${sampleShort}
+mkdir -p /home/vincent/miniconda2/share/snpeff-4.3.1t-2/data/${sampleShort}
+
+cat ${Assembly} > /home/vincent/miniconda2/share/snpeff-4.3.1t-2/data/${sampleShort}/sequences.fa
+
+
+
+##-------------
+#04 genes gff 
+##-------------
+
+#grep "^#" -v /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/PGAP_assembly/sterm/S_thermophilus_RMK202.current.gff|grep -e "${sampleShort}" |cut -f 1|sort|uniq -c
+
+#cat /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/PGAP_assembly/sterm/S_thermophilus_RMK202.current.gff | grep -e "^${sampleShort}" |awk -F "\t" '{OFS"\t"}{if($3=="CDS") print $0}' > /home/vincent/miniconda2/share/snpeff-4.3.1t-2/data/${sampleShort}//genes.gff
+
+
+##-------------
+#04 all genes gff 
+##-------------
+
+##already preped in RAST chunk
+ cat /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/spades_nonMapping_assembly/annotation_eggnog_rast/assembly_20191129/merged/all_genes_rmk202.gff |sed 's/gene/CDS/g' > /home/vincent/miniconda2/share/snpeff-4.3.1t-2/data/${sampleShort}//genes.gff
+
+##-------------
+##05_build database
+##-------------
+
+cd /home/vincent/miniconda2/share/snpeff-4.3.1t-2/
+java -jar snpEff.jar build -gff3 -v ${sampleShort}
+
+
+##==================
+##running snpEff
+##==================
+
+##-------------
+##06_preperation of SNV file
+##-------------
+
+#grep -e "${sampleShort}" ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf > ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_all.vcf
+
+##-------------
+##07 SNveff calling
+##-------------
+
+cd /home/vincent/miniconda2/share/snpeff-4.3.1t-2/
+#rm -r ${sampleShort} ${BaseLocation}/${FREEBAYES_out}/SnpEff/${sampleShort}/
+mkdir -p ${sampleShort} ${BaseLocation}/${FREEBAYES_out}/SnpEff/${sampleShort}/
+
+
+java -Xmx64g -jar snpEff.jar ${sampleShort} ${BaseLocation}/${FREEBAYES_out}/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL.recode.vcf > ${BaseLocation}/${FREEBAYES_out}/SnpEff/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_snpeff.vcf
+
+
+##-------------
+##08_prep for R
+##-------------
+
+grep "^#" -v ${BaseLocation}/${FREEBAYES_out}/SnpEff/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_snpeff.vcf  | \
+  awk -F "\t" 'BEGIN{OFS="\t"} {print $1,$2,$3,$4,$5,$6,$7,$8}' > ${BaseLocation}/${FREEBAYES_out}/SnpEff/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_snpeff_prepforR.vcf
+
+
+##==================
+##transfer local 
+##==================
+
+##-------------
+###snpEff
+##-------------
+mkdir -p ~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity/
+scp vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/03_mapping2RMK202Ref/freebayesOuput/SnpEff/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_snpeff_prepforR.vcf ~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity/
+
+##-------------
+###eggnog
+##-------------
+
+#scp vincent@130.223.51.151:/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/eggnog/${sampleShort}_pgap_query_seqs.fa.emapper.annotations  ~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new/variantCallsfreebayes_all_${sampleShort}_eggnog.vcf 
+
+
+
+```
+
+here we merge all annotation knowledge we have of the SNPs:
+
+1. SNPeffect
+2. eggnog annotation
+3. repeat annotation
+4. core genes
+
+Thereafter we have a long list of information for every SNP. 
+
+#####repeat genes
+
+We could potentially have a problem of alignement in genes highly similiar. Therefore I look if which genes are cluster together. 
+
+```{bash}
+
+
+
+###================
+##description file
+###================
+threads=37
+samplesss=/archiv/Projects/2019_RMK202_analysis/01_log/names_extended.txt  ##the file with all sample names
+logFilelocation=/archiv/Projects/2019_RMK202_analysis/01_log
+BaseLocation=/archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains_PGAP
+Assembly=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/FINAL_assembly_withPlasmids_PGAP/di_rmk202_MAG_reference_polished.fasta
+
+
+
+BaseLocation_Ldel=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/PGAP_assembly/ldel/
+BaseFILNAME=L_delbrueckii_RMK202
+
+
+BaseLocation_Sterm=/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/PGAP_assembly/sterm/
+BaseFILNAME_sterm=S_thermophilus_RMK202
+
+
+###================
+##script
+###================
+
+
+##==================
+##merge all fna files
+##==================
+
+
+rm -r ${BaseLocation}/Repeats/
+mkdir -p ${BaseLocation}/Repeats/
+
+cat ${BaseLocation_Ldel}/${BaseFILNAME}_genes.ffn \
+  ${BaseLocation_Sterm}/${BaseFILNAME_sterm}_genes.ffn > \
+ ${BaseLocation}/Repeats/both_genes.ffn
+
+cat ${BaseLocation_Ldel}/${BaseFILNAME}.current.gff \
+  ${BaseLocation_Sterm}/${BaseFILNAME_sterm}.current.gff > \
+ ${BaseLocation}/Repeats/both_genes.ffn
+ 
+##==================
+##cd-hit
+##==================
+
+cd-hit-est -i ${BaseLocation}/Repeats/both_genes.ffn \
+    -o ${BaseLocation}/Repeats/both__cdsClustering.txt -c 0.90 -M 30000 -T 37 -sc 1 -sf 1
+
+  # cd-hit -i /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/ST_singu/Streptococcus_thermophilus_RMK202_pgap_cds.fna \
+  #  -o /archiv/Projects/2019_pilotplant/02_annotation/CDS_clustering/sterm_cdsClustering.txt -c 0.85 -M 30000 -T 37 -sc 1 -sf 1
+  
+
+
+
+
+
+
+  ###multifasta2fasta
+  mkdir -p ${BaseLocation}/Repeats/splitClusters
+  cd ${BaseLocation}/Repeats/splitClusters
+  awk 'NR%1==0{ print > "Cluster_"++i".txt" }' RS='>Cl' ${BaseLocation}/Repeats/both__cdsClustering.txt.clstr
+
+  ##prepare log file
+  #cluster_2.txt till cluster_24.txt
+  
+  ls ${BaseLocation}/Repeats/splitClusters |sort -V |head -84 |tail -83 > ${BaseLocation}/Repeats/splitClusters/files_of_INterest.txt
+     
+   ##get gene names
+   num=2
+   rm ${BaseLocation}/Repeats/bigCluster/all_repeatingGenes.txt
+   mkdir -p ${BaseLocation}/Repeats/bigCluster/
+   i=Cluster_2.txt
+   for i in $(cat ${BaseLocation}/Repeats/splitClusters/files_of_INterest.txt)
+    do
+   grep -v "^uster" ${BaseLocation}/Repeats/splitClusters/${i} |awk -F ">" '{print $2}' |awk -F "... at " 'BEGIN{OFS="\t"}{print $1,$2}' |sed 's/... \*//g' |sed '$ d' > \
+    ${BaseLocation}/Repeats/bigCluster/names_${i}
+    
+   grep -v "^uster" ${BaseLocation}/Repeats/splitClusters/${i} |awk -F ">" '{print $2}'  |awk -F "... at " -v count="$num" 'BEGIN{OFS="\t"}{print $1,$2,count}' |sed 's/... \*//g' |sed '$ d' >> \
+   ${BaseLocation}/Repeats/bigCluster/all_repeatingGenes.txt
+      
+    num=$((num+1))
+    
+    
+    done
+ 
+
+    ##get gff
+    
+  # genes=pgaptmp_001292
+    mkdir -p  ${BaseLocation}/Repeats//bigCluster_genes/
+    for i in $(cat ${BaseLocation}/Repeats/splitClusters/files_of_INterest.txt)
+    do
+    rm  ${BaseLocation}/Repeats//bigCluster_genes//genes_${i}
+    for genes in $(cut -f 1 ${BaseLocation}/Repeats/bigCluster//names_${i})
+      do
+        
+        grep "${genes}.p" ${BaseLocation}/Repeats/both_genes.ffn >> \
+          ${BaseLocation}/Repeats//bigCluster_genes/genes_${i}
+       
+        
+      done # $genes   
+    done   # $i
+    
+    
+    
+  mkdir -p ~/Desktop/Projects/2019_Pilotplan/09_annoation/repeatingGenes
+
+
+scp vincent@130.223.51.116:/archiv/Projects/2019_RMK202_analysis/03_mapping2Nanopre/02_againstpolished_single_rmk202_final_kneaddata_withStrains_PGAP/Repeats/bigCluster/all_repeatingGenes.txt ~/Desktop/Projects/2019_Pilotplan/09_annoation/repeatingGenes/
+
+```
+
+
+#####Core genes prep
+
+```{bash}
+
+rm /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/coreGenes_rmk202_both.txt
+
+##=======================================================================================================================
+##-----------------------------------------------Streptococcus thermophilus----------------------------------------------
+##=======================================================================================================================
+species=Sterm
+
+##-------extract OG names
+#rm /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/Sterm/orthofinder/Results_Jul18/Orthogroups/test.txt
+rm /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt
+for OG in $(cat /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups_SingleCopyOrthologues.txt)
+do
+
+grep "$OG" /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups.txt | sed 's/gnl|extdb|//g'| awk -F " " 'BEGIN{OFS="\t"}{print $1,"S_thermophilus_RMK202",$2}'  >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01/Orthogroups/OG_names_${species}.txt
+#grep "$OG" /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups.txt | sed 's/gnl|extdb|//g'| awk -F " " 'BEGIN{OFS="\t"}{print $1,$2}'  >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01/Orthogroups/OG_names_${species}.txt
+
+
+done #OG
+
+cat /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/coreGenes_rmk202_both.txt
+
+
+##=======================================================================================================================
+##-----------------------------------------------Lactobacillus delbrueckii----------------------------------------------
+##=======================================================================================================================
+species=Ldel
+
+##-------extract OG names
+#rm /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/Sterm/orthofinder/Results_Jul18/Orthogroups/test.txt
+rm /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt
+for OG in $(cat /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups_SingleCopyOrthologues.txt)
+do
+
+#grep "$OG" /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups.txt| sed 's/gnl|extdb|//g' |awk -F " " 'BEGIN{OFS="\t"}{print $1,"	L_delbrueckii_RMK202",$11}'  >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt
+grep "$OG" /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups.txt| sed 's/gnl|extdb|//g' |awk -F " " 'BEGIN{OFS="\t"}{print $1,"	L_delbrueckii_RMK202",$2}'  >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt
+
+#grep "$OG" /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/Orthogroups.txt| sed 's/gnl|extdb|//g' |awk -F " " 'BEGIN{OFS="\t"}{print $1,$2}'  >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt
+
+
+done #OG
+
+cat /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/${species}/orthofinder/Results_Dec01//Orthogroups/OG_names_${species}.txt >> /archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/coreGenes_rmk202_both.txt
+
+
+
+##=======================================================================================================================
+##-----------------------------------------------Lactobacillus delbrueckii----------------------------------------------
+##=======================================================================================================================
+
+mkdir -p ~/Desktop/Projects/2019_Pilotplan/09_annoation/coreGenes
+
+scp vincent@130.223.51.116:/archiv/Projects/2019_Nano_Meta/05_Orthofinder_withIsolates/coreGenes_rmk202_both.txt  ~/Desktop/Projects/2019_Pilotplan/09_annoation/coreGenes/coreGenes_rmk202_both.txt
+
+
+```
+
+#####merge all infomration
+
+```{r}
+library(readr)
+library(stringr)
+
+##==================
+##01-SNPeff
+##==================
+RMK202_both_snpEff <- read_delim("~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_snpeff_prepforR.vcf",  "\t", escape_double = FALSE, col_names = c("X.CHROM","POS","unknown","REF","ALT","quality","uknown2","snpeff"), trim_ws = TRUE)
+table(RMK202_both_snpEff$X.CHROM)
+RMK202_both_snpEff_02 <- subset(RMK202_both_snpEff, select=-c(unknown,uknown2))
+RMK202_both_snpEff_02$site <- paste(RMK202_both_snpEff_02$X.CHROM,RMK202_both_snpEff_02$POS,RMK202_both_snpEff_02$REF,RMK202_both_snpEff_02$ALT,sep="_")
+
+tmp_snpeff <-  data.frame(str_split_fixed(RMK202_both_snpEff_02$snpeff, fixed("|"), 136)[,2:8])
+colnames(tmp_snpeff) <- c("effect","significance","geneName","PGAP_name","type","typeName","typeGene")
+
+RMK202_both_snpEff_02 <- subset(RMK202_both_snpEff_02, select=-snpeff)
+RMK202_both_SNPeff_final <-  cbind(RMK202_both_snpEff_02,tmp_snpeff)
+# table(S_thermophilus_snpEff_03$typeGene)
+# 
+# S_thermophilus_snpEff_03[which(S_thermophilus_snpEff_03$typeGene=="pseudogene"),]
+# table(S_thermophilus_snpEff_03[which(S_thermophilus_snpEff_03$typeGene=="protein_coding"),]$type)
+# S_thermophilus_snpEff_03[which(S_thermophilus_snpEff_03$typeGene=="rRNA"),]
+
+RMK202_both_SNPeff_final$finalName <- RMK202_both_SNPeff_final$typeName %>% gsub("rna-","",.) %>%  gsub("TRANSCRIPT_gene-","",.) %>%  gsub("gene-","",.) 
+RMK202_both_SNPeff_final$finalName <- paste(RMK202_both_SNPeff_final$X.CHROM,RMK202_both_SNPeff_final$finalName,sep = "_")
+# length(grep("pgaptmp_",S_thermophilus_snpEff_03$finalName,invert = TRUE))
+table(RMK202_both_SNPeff_final$X.CHROM)
+#table(RMK202_both_SNPeff_final$significance)
+##==================
+##02 eggnog
+##==================
+RMK202_both_eggnog <- read_delim("/home/vincent/Desktop/Projects/2019_Pilotplan/assembly_20191129/merged/merged_all_eggnog.annotations",  "\t", escape_double = FALSE, trim_ws = TRUE,col_names = c("query_name","seed_eggNOG_ortholog","seed_ortholog_evalue","seed_ortholog_score","best_tax_level","Preferred_name","GOs","EC","KEGG_ko","KEGG_Pathway","KEGG_Module","KEGG_Reaction","KEGG_rclass","BRITE","KEGG_TC","CAZy","BiGG_Reaction","tax_scope","eggNOG OGs","bestOG","COG_Functional_Category","eggNOG free text description"))
+# RMK202_both_eggnog[RMK202_both_eggnog$query_name %in% SNPeff_final$finalName,]
+
+##==================
+##03 repeats
+##==================
+
+RMK202_both_repeats <- read_delim("~/Desktop/Projects/2019_Pilotplan/09_annoation/repeatingGenes/all_repeatingGenes.txt",  "\t", escape_double = FALSE, trim_ws = TRUE,col_names = c("geneNAME","Repeat_identity","Repeat_cluster")) #%>% slice( 1:(n()-3))
+# nrow(RMK202_both_repeats)
+
+##==================
+##04_core genes
+##==================
+library(tidyverse)
+RMK202_both_coreGenes <- read_delim("~/Desktop/Projects/2019_Pilotplan/09_annoation/coreGenes/coreGenes_rmk202_both.txt",  "\t", escape_double = FALSE, trim_ws = TRUE,col_names = c("orthogroup","species","geneName")) %>% add_column(.,core="core")
+table(RMK202_both_coreGenes$species)
+table(RMK202_both_coreGenes$core, RMK202_both_coreGenes$species)
+tmp <- RMK202_both_coreGenes %>% filter(species=="L_delbrueckii_RMK202")
+RMK202_both_coreGenes %>% filter(species=="S_thermophilus_RMK202")
+
+##==================
+##05_merge
+##==================
+nrow(RMK202_both_SNPeff_final)
+
+RMK202_snpeff_eggnog <- merge(RMK202_both_SNPeff_final, RMK202_both_eggnog, by.x = "geneName", by.y = "query_name",all.x = TRUE)
+RMK202_snpeff_eggnog_repeats <- merge(RMK202_snpeff_eggnog, RMK202_both_repeats, by.x = "geneName", by.y = "geneNAME",all.x = TRUE)
+RMK202_snpeff_eggnog_repeats_core <- merge(RMK202_snpeff_eggnog_repeats, RMK202_both_coreGenes, by.x = "geneName", by.y = "geneName",all.x = TRUE)
+nrow(RMK202_snpeff_eggnog_repeats_core)
+
+table(RMK202_snpeff_eggnog_repeats_core$core)
+table(RMK202_snpeff_eggnog_repeats_core$species)
+RMK202_snpeff_eggnog_repeats_core$species <- revalue(RMK202_snpeff_eggnog_repeats_core$X.CHROM, c("CP046131"="L. delbrueckii","CP046134"="S. thermophilus"))
+table(RMK202_snpeff_eggnog_repeats_core$species)
+
+# write.csv(RMK202_snpeff_eggnog_repeats_core,"~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity//RMK202_snpeff_eggnog_repeats_core.txt")
+write.csv(RMK202_snpeff_eggnog_repeats_core,"~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity//RMK202_snpeff_eggnog_repeats_core_02.txt")
+
+RMK202_snpeff_eggnog_repeats_core[grep("S_thermophilus",RMK202_snpeff_eggnog_repeats_core$finalName),]
+nrow(RMK202_snpeff_eggnog_repeats_core)
+
+RMK202_snpeff_eggnog_repeats_core_ldel <- RMK202_snpeff_eggnog_repeats_core %>% filter(X.CHROM=="CP046131")
+table(RMK202_snpeff_eggnog_repeats_core_ldel$core)
+```
+
+
+
+##first analysis
+
+```{r}
+
+library(tidyverse)
+library(vcfR)
+library(readr)
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(xlsx)
+
+##==================
+##01_import data
+##==================
+
+culturesss <- 101
+snps_long <- NA
+for (culturesss in c("101","105","115","124","150","190","202","203","280","302","305")) {
+  
+
+snps_freebayes <- read_delim(paste0("/home/vincent/Desktop/Projects/2020_strainDelineation/05_SNP_called/raw_snps/prepedR/variantCallsfreebayes_minAlt3x_0.05_minCov10x_QC_noINDEL_RMK",culturesss,"_prepR.vcf"), "\t", escape_double = FALSE, trim_ws = TRUE) %>%  select(-c(QUAL,FILTER,FORMAT))
+
+
+##==================
+##01_filter SNVs MQM larger than 30 
+##INFO=<ID=MQM,Number=A,Type=Float,Description="Mean mapping quality of observed alternate alleles">
+##==================
+snps_freebayes$MQM <- str_split_fixed(snps_freebayes$INFO, ";", 130)[,16] %>% gsub("MQM=","",.) 
+snps_freebayes$MQM <- str_split_fixed(snps_freebayes$MQM, ",", 3)[,1] %>%  as.numeric()
+snps_freebayes <- snps_freebayes[which(snps_freebayes$MQM>30),] %>% select(-MQM,-INFO)
+
+##==================
+##02_long list and frequency calc
+##==================
+
+snps_freebayes_long <- gather(snps_freebayes, sample, Snps, colnames(snps_freebayes)[6]:colnames(snps_freebayes)[ncol(snps_freebayes)], factor_key=TRUE,na.rm = TRUE) 
+
+###------------------------calculate allel frequency   
+
+sample_relative_temp <-snps_freebayes_long %>% separate("Snps", into=c("GT","DP","AD","RO","QR","AO","QA","GL"), sep = ":") %>% transform(.,allel_frequency=as.numeric(AO)/as.numeric(DP),QualityScore=as.numeric(QA)/as.numeric(DP))
+
+##==================
+##03_filter QA/DP > 30
+##INFO=<ID=QA,Number=A,Type=Integer,Description="Alternate allele quality sum in phred">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus"
+##==================
+sample_relative_temp_filter <- sample_relative_temp[which(!is.na(sample_relative_temp$QualityScore)),]
+sample_relative_temp_withONT <-sample_relative_temp_filter[which(sample_relative_temp_filter$QualityScore>5),]
+table(sample_relative_temp_withONT$sample)
+sample_relative_temp_withONT$site <- paste(sample_relative_temp_withONT$X.CHROM,sample_relative_temp_withONT$POS,sample_relative_temp_withONT$REF,sample_relative_temp_withONT$ALT,sep="_")
+sample_relative_temp <- sample_relative_temp_withONT
+
+
+
+
+
+# sample_relative_temp_withONT <-snps_freebayes_long %>% separate("Snps", into=c("GT","DP","AD","RO","QR","AO","QA","GL"), sep = ":") %>% transform(.,allel_frequency=as.numeric(AO)/as.numeric(DP))
+
+# sample_relative_temp_withONT <- sample_relative_temp
+sample_relative_temp_withONT$site <- paste(sample_relative_temp_withONT$X.CHROM,sample_relative_temp_withONT$POS,sample_relative_temp_withONT$REF,sample_relative_temp_withONT$ALT,sep="_")
+sample_relative_safe_final_prep <- sample_relative_temp_withONT %>% select(site,X.CHROM,sample,allel_frequency)
+
+sample_relative_safe_final_tsne <- spread(sample_relative_safe_final_prep, sample, allel_frequency)
+
+sample_relative_wide <- sample_relative_safe_final_tsne[rowSums(sample_relative_safe_final_tsne[,3:ncol(sample_relative_safe_final_tsne)],na.rm = TRUE)>0,]
+sample_relative_wide$species <- revalue(sample_relative_wide$X.CHROM, c("CP046131"="L. delbrueckii","CP046134"="S. thermophilus"))
+sample_relative_wide$culture <- culturesss
+
+
+
+##==================
+##11_make long
+##==================
+colnames(sample_relative_wide)
+sample_relative_long <- gather(sample_relative_wide, sample, Snps, colnames(sample_relative_wide)[3]:colnames(sample_relative_wide)[ncol(snps_freebayes)-3], factor_key=TRUE,na.rm = TRUE) 
+# nrow(sample_relative_long)
+table(sample_relative_long$X.CHROM)
+
+snps_long <- rbind(snps_long,sample_relative_long)
+}
+
+
+
+##==================
+##remove samples
+##==================
+
+##the cheese samples from rmk202 are weird because they were passaged on plate before.
+table(snps_long$sample)
+snps_long <- snps_long %>% filter(!sample %in% c("C_202_18_02","C_202_18_01"))
+table(snps_long$sample)
+
+##==================
+##11_make long
+##==================
+snps_long <- snps_long[-1,]
+
+
+snps_long$samplesNew <- revalue(snps_long$sample,c("FSK_101_75"="starter 1","Lyo_101_76_4_7"="starter 2","Lyo_101_77"="starter 3","Lyo_101_02_7"="starter 4","Lyo_101_10_2"="starter 5","Lyo_101_16"="starter 6","ws_101_19"="starter 7","FSK_105_75"="starter 1","Lyo_105_76_4_1"="starter 2","Lyo_105_76_4_2"="starter 3","FSK_105_76_4_6"="starter 4","Lyo_105_76_2"="starter 5","Lyo_105_76_1"="starter 6","Lyo_105_76_5_11"="starter 7","Lyo_105_76_5_13"="starter 8","Lyo_105_76_5_12"="starter 9","Lyo_105_76_3_31"="starter 10","Lyo_105_11_5"="starter 11","Ws_105_19"="starter 12","Lyo_115_09"="starter 1","Ws_115_19"="starter 2","FSK_124_75_4"="starter 1","Lyo_124_08"="starter 2", "Ws_124_19"="starter 3","Lyo_150_76_4"="starter 1","Lyo_150_76_11"="starter 2","Lyo_150_11_3_11"="starter 3","Lyo_150_14_10"="starter 4","Lyo_150_18"="starter 5","Ws_150_19"="starter 6","Lyo_190_95_3"="starter 1","Lyo_190_17"="starter 2","Ws_190_19"="starter 3","Lyo_202_96"="starter 1","Lyo_202_12"="starter 2","Lyo_202_14"="starter 3","S_202_14"="starter 4","Ws_202_18"="starter 5","S_202_18"="starter 6", "C_202_18_02"="starter 7","C_202_18_01"="starter 8","Lyo_203_77"="starter 1","Lyo_203_96_1"="starter 2","Lyo_203_16"="starter 3","Ws_203_19"="starter 4","Lyo_280_16"="starter 1","Lyo_280_16_4"="starter 2", "Ws_280_19"="starter 3","Lyo_302_13"="starter 1", "Ws_302_19"="starter 2","FSK_305_76"="starter 1", "Lyo_305_96_1"="starter 2","Lyo_305_17"="starter 3","Ws_305_19"="starter 4"))
+
+
+
+snps_long$samplesNew = factor(snps_long$samplesNew, levels=c("starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12"))
+snps_long$samplesNew <- droplevels(snps_long$samplesNew)
+
+snps_long_final <- snps_long %>% select(site,species,samplesNew,culture,Snps)
+
+write.csv(snps_long_final,"~/Desktop/Projects/2020_strainDelineation/05_SNP_called/snps_analysed_all.csv",row.names = FALSE)
+  # write.csv(naming_DF,"~/Desktop/Projects/2020_StarterCultureDiversity/98_script/naming_file.csv")
+
+
+###----------------------------------------
+##add SNPeffect INFO
+###----------------------------------------
+
+
+sample_relative_temp_cleaned <- snps_long_final
+
+###spread the dataframe again
+
+nrow(sample_relative_temp_cleaned)
+
+sample_relative_safe_final_prep <- sample_relative_temp_cleaned %>% select(site,species,samplesNew,culture,Snps)
+#nrow(sample_relative_safe_final_prep[grep("S_thermophilus_RMK202",sample_relative_safe_final_prep$site),])
+sample_relative_safe_final_tsne <- spread(sample_relative_safe_final_prep, samplesNew, Snps)  %>%replace(is.na(.), 0)
+nrow(sample_relative_safe_final_tsne)
+table(sample_relative_safe_final_prep$sample)
+##==================
+##05_filter rowsums!=0
+##==================
+
+##remove row sums ==0
+nrow(sample_relative_safe_final_tsne)
+sum(rowSums(sample_relative_safe_final_tsne[,4:ncol(sample_relative_safe_final_tsne)],na.rm = TRUE)==0)
+
+
+sample_relative_wide <- sample_relative_safe_final_tsne[rowSums(sample_relative_safe_final_tsne[,4:ncol(sample_relative_safe_final_tsne)],na.rm = TRUE)>0,]
+
+# sample_relative_wide_phagesONly <- sample_relative_wide[grep("phage",sample_relative_wide$X.CHROM),]
+# table(sample_relative_wide_phagesONly$X.CHROM)
+# nrow(sample_relative_wide)
+# sample_relative_wide <- subset(sample_relative_wide, select=-POS)
+# sample_relative_wide$species <- sample_relative_wide$X.CHROM
+# sample_relative_wide$species <- revalue(sample_relative_wide$species, c("CP046131"="L. delbrueckii","CP046134"="S. thermophilus"))
+# sample_relative_wide$culture <- "RMK202"
+# nrow(sample_relative_wide)
+##==================
+##06_add gene information
+##==================
+
+# RMK202_snpeff_eggnog_repeats_core <- read_csv("~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity/RMK202_snpeff_eggnog_repeats_core.txt")
+
+RMK202_snpeff_eggnog_repeats_core <- read_csv("~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new_startercultureDiversity//RMK202_snpeff_eggnog_repeats_core_02.txt")
+# nrow(RMK202_snpeff_eggnog_repeats_core)
+table(RMK202_snpeff_eggnog_repeats_core$species)
+table(RMK202_snpeff_eggnog_repeats_core$core,RMK202_snpeff_eggnog_repeats_core$species)
+# nrow(sample_relative_wide)
+#RMK202_snpeff_eggnog_repeats_core_subset <- subset(RMK202_snpeff_eggnog_repeats_core, select=c(X.CHROM,site,finalName,effect,significance,geneName,GOs,EC,KEGG_ko,COG_Functional_Category,Repeat_identity,core))
+dim(sample_relative_wide)
+sample_relative_wide_description <- merge(sample_relative_wide,RMK202_snpeff_eggnog_repeats_core, by = "site",all.x = TRUE)
+dim(sample_relative_wide_description)
+table(sample_relative_wide_description$species.x)
+# nrow(sample_relative_wide_description)
+table(sample_relative_wide_description$core)
+table(sample_relative_wide_description$significance)
+#---------------------------------subset for interesting columns
+colnames(sample_relative_wide_description)
+# sample_relative_wide_description_interest <- subset(sample_relative_wide_description, select=c(species.x,site,culture,effect,significance,geneName,COG_Functional_Category,Repeat_cluster,core,culture,"starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12"))
+
+sample_relative_wide_description_interest <- sample_relative_wide_description %>% select(species.x,site,culture,effect,significance,geneName,COG_Functional_Category,Repeat_cluster,core,culture,"starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12")
+# dim(sample_relative_wide_description)
+# dim(sample_relative_wide_description_interest)
+# table(sample_relative_wide_description_interest$core)
+
+# sample_relative_wide_description_interest <- sample_relative_wide_description
+
+##==================
+##08_remove non-bacterial SNPs
+##==================
+table(sample_relative_wide_description_interest$species.x)
+nrow(sample_relative_wide_description_interest)
+# sample_relative_wide_description_interest_subset <- sample_relative_wide_description_interest[which(sample_relative_wide_description_interest$X.CHROM.x %in% c("L_delbrueckii_RMK202","S_thermophilus_RMK202")),]
+sample_relative_wide_description_interest_subset <- sample_relative_wide_description_interest[which(sample_relative_wide_description_interest$species.x %in% c("L. delbrueckii","S. thermophilus")),]
+nrow(sample_relative_wide_description_interest_subset)
+table(sample_relative_wide_description_interest_subset$species.x)
+sample_relative_wide <- sample_relative_wide_description_interest_subset
+table(sample_relative_wide_description_interest_subset$core)
+table(sample_relative_wide_description_interest_subset$core,sample_relative_wide_description_interest_subset$species.x)
+
+
+##==================
+##09_order variables properly
+##==================
+
+
+sample_relative_wide$significance <- factor(sample_relative_wide$significance, levels=c("MODIFIER","LOW","MODERATE","HIGH"))
+
+
+##-------------------------------wirte to file
+
+# write.xlsx(dN_dS_ratios_final_02,file="Users//Desktop/presenations/my_presentations/20191007_groupmeeting/figures/dN_dS_ratios_genes_rmk202.xls", sheetName = "Sheet1", 
+  # col.names = TRUE, row.names = FALSE, append = FALSE)
+
+##==================
+##11_make long
+##==================
+colnames(sample_relative_wide)
+sample_relative_long <- gather(sample_relative_wide, sample, Snps, "starter 1":"starter 12", factor_key=TRUE,na.rm = TRUE) 
+nrow(sample_relative_long)
+table(sample_relative_long$species.x)
+table(sample_relative_long$core)
+
+
+##==================
+##12_make a unique gene infomoration
+##==================
+
+# RMK202_snpeff_eggnog_repeats_core <- read_csv("~/Desktop/Projects/2019_Pilotplan/04_mapping2ONT/SnpEff/new/RMK202_snpeff_eggnog_repeats_core.txt")
+# RMK202_snpeff_eggnog_repeats_core_uniuqes <- RMK202_snpeff_eggnog_repeats_core %>% select(-c("X1","X.CHROM","POS","REF","ALT","quality","site","effect","significance","best_tax_level")) %>% distinct()
+# table(RMK202_snpeff_eggnog_repeats_core_uniuqes$core)
+# nrow(RMK202_snpeff_eggnog_repeats_core_uniuqes)
+# RMK202_snpeff_eggnog_repeats_core_uniuqes_final <- merge(RMK202_snpeff_eggnog_repeats_core_uniuqes,dN_dS_ratios_prep,by.y="gene",by.x="finalName",all.x = TRUE)  
+
+# write.csv(RMK202_snpeff_eggnog_repeats_core_uniuqes_final,file="~/Desktop/presenations/my_presentations/20191007_groupmeeting/figures/RMK202_snpeff_eggnog_repeats_core_dNdS_uniqueGenes.txt")
+
+# colnames(RMK202_snpeff_eggnog_repeats_core_uniuqes_final)
+# RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce <- RMK202_snpeff_eggnog_repeats_core %>% select(-c("finalName","Preferred_name","EC","KEGG_ko","KEGG_Reaction","CAZy","BiGG_Reaction","COG_Functional_Category","eggNOG free text description")) %>% distinct()
+
+##==================
+##output infomration
+##==================
+# sample_relative_wide
+write.csv(sample_relative_wide,"~/Desktop/Projects/2020_strainDelineation/05_SNP_called/snps_analysed_all_withINfomration_wide.csv",row.names = FALSE)
+# table(sample_relative_wide$core)
+# unique(sample_relative_wide$core)
+dim(sample_relative_wide)
+sample_relative_wide[which(sample_relative_wide$core=="core"),]
+
+snps_long_final <- gather(sample_relative_wide, sample, Snps, "starter 1":"starter 12", factor_key=TRUE,na.rm = TRUE) 
+snps_long_final[which(snps_long_final$core=="core"),]
+
+dim(snps_long_final$core)
+```
+## tsne snp
+
+maybe I have to polish the snps first. I think without cleaning away super low abudnant and noisy snps it does not detect the underlining pattern
+
+```{r}
+
+library(forcats) 
+library(Rtsne)
+library(fpc)
+library(ggrepel)
+library( ggforce)
+###--------------------------------------------------------------------
+##colors
+###--------------------------------------------------------------------
+
+colors <- c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#80e5ff","#008181","#00dcdc")
+
+###--------------------------------------------------------------------
+##prep for tSNE
+###--------------------------------------------------------------------
+table(snps_long_final$core)
+# snps_long_final_forTSNE <- snps_long_final 
+snps_long_final_forTSNE <- snps_long_final  %>% filter(core=="core")
+table(snps_long_final$core,snps_long_final$species.x)
+snps_long_final_forTSNE$sampleName <- paste0(snps_long_final_forTSNE$culture,"_",snps_long_final_forTSNE$sample)
+colnames(snps_long_final_forTSNE)
+dim(snps_long_final_forTSNE)
+snps_long_final_forTSNE <-  snps_long_final_forTSNE %>% select(species.x,site,sampleName,Snps)%>% filter(.,Snps>0.1) 
+dim(snps_long_final_forTSNE)
+table(snps_long_final_forTSNE$species.x)
+
+###go wide
+snps_long_final_forTSNE_all <- snps_long_final_forTSNE
+snps_long_final_forTSNE <- snps_long_final_forTSNE %>% select(-species.x)
+# snps_long_final_forTSNE <- snps_long_final_forTSNE %>% filter(species.x=="L. delbrueckii") %>% select(-species.x)
+
+mst1_metagenomicMutations_tsne <- spread(snps_long_final_forTSNE, site, Snps)%>%replace(is.na(.), 0) %>% column_to_rownames(var = "sampleName")
+dim(mst1_metagenomicMutations_tsne)
+
+
+
+fortsne <- mst1_metagenomicMutations_tsne[!duplicated(mst1_metagenomicMutations_tsne), ]
+
+# fortsne[duplicated(fortsne), ] %>% nrow()
+dim(fortsne)
+set.seed(1234567)
+# set.seed(12314567)
+set.seed(007)
+
+tsne <- Rtsne(fortsne, dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+# tsne <- Rtsne(fortsne[,41:45], dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+tsne_plot <- as.data.frame(tsne$Y)
+tsne_plot$site <- rownames(fortsne)
+tsne_plot$sample <- str_split_fixed(tsne_plot$site, "_", 2)[,1]
+tsne_plot$number <- str_split_fixed(tsne_plot$site, "_", 2)[,2]
+tsne_plot$cheese <- revalue(tsne_plot$sample,c("101"="emmentaler","105"="emmentaler","115"="emmentaler","124"="emmentaler","150"="emmentaler","190"="emmentaler","202"="gruyere","203"="gruyere","280"="gruyere","302"="sbrinz","305"="sbrinz"))
+
+# colors <- c("#aa0000","#d40000","#ff0000","#ff2a2a","#ff5555","#ff8080","#009cf0","#34d0fc","#b4ecfc","#008181","#00dcdc")
+# colors <- c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#b4ecfc","#008181","#00dcdc")
+
+tsne_plotss <- ggplot(tsne_plot, aes(x = V1, y = V2,color=sample,fill=sample,shape=cheese)) +labs(title=paste0("all SNV (n=",ncol(fortsne),")"))+
+    geom_mark_ellipse(aes(fill = sample),alpha=0.1) +geom_point(alpha = 0.8,size=5) + theme_classic() +theme(legend.position = "none")+scale_color_manual(values = colors)+scale_fill_manual(values = colors)+geom_text(aes(label=site),hjust=0, vjust=0)
+
+tsne_plotss
+
+###------------------------------
+##only Ldel
+###------------------------------
+
+snps_long_final_forTSNE_ldel <- snps_long_final_forTSNE_all %>% filter(species.x=="L. delbrueckii") %>% select(-species.x)
+
+mst1_metagenomicMutations_tsne_ldel <- spread(snps_long_final_forTSNE_ldel, site, Snps)%>%replace(is.na(.), 0) %>% column_to_rownames(var = "sampleName")
+dim(mst1_metagenomicMutations_tsne_ldel)
+
+
+
+fortsne <- mst1_metagenomicMutations_tsne_ldel[!duplicated(mst1_metagenomicMutations_tsne_ldel), ]
+
+# fortsne[duplicated(fortsne), ] %>% nrow()
+dim(fortsne)
+set.seed(1234567)
+# set.seed(12314567)
+set.seed(007)
+
+tsne_ldel <- Rtsne(fortsne, dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+# tsne <- Rtsne(fortsne[,41:45], dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+tsne_plot <- as.data.frame(tsne_ldel$Y)
+tsne_plot$site <- rownames(fortsne)
+tsne_plot$sample <- str_split_fixed(tsne_plot$site, "_", 2)[,1]
+tsne_plot$number <- str_split_fixed(tsne_plot$site, "_", 2)[,2]
+tsne_plot$cheese <- revalue(tsne_plot$sample,c("101"="emmentaler","105"="emmentaler","115"="emmentaler","124"="emmentaler","150"="emmentaler","190"="emmentaler","202"="gruyere","203"="gruyere","280"="gruyere","302"="sbrinz","305"="sbrinz"))
+
+# colors <- c("#aa0000","#d40000","#ff0000","#ff2a2a","#ff5555","#ff8080","#009cf0","#34d0fc","#b4ecfc","#008181","#00dcdc")
+# colors <- c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#b4ecfc","#008181","#00dcdc")
+
+tsne_plotss_ldel <- ggplot(tsne_plot, aes(x = V1, y = V2,color=sample,fill=sample,shape=cheese)) +labs(title=paste0("L. delbrueckii SNV (n=",ncol(fortsne),")"))+
+    geom_mark_ellipse(aes(fill = sample),alpha=0.1) +geom_point(alpha = 0.8,size=5) + theme_classic() +scale_color_manual(values = colors)+scale_fill_manual(values = colors)+geom_text(aes(label=site),hjust=0, vjust=0)
+
+tsne_plotss_ldel
+
+
+###------------------------------
+##only Sterm
+###------------------------------
+
+snps_long_final_forTSNE_sterm <- snps_long_final_forTSNE_all %>% filter(species.x=="S. thermophilus") %>% select(-species.x)
+
+mst1_metagenomicMutations_tsne_sterm <- spread(snps_long_final_forTSNE_sterm, site, Snps)%>%replace(is.na(.), 0) %>% column_to_rownames(var = "sampleName")
+dim(mst1_metagenomicMutations_tsne_sterm)
+
+
+
+fortsne <- mst1_metagenomicMutations_tsne_sterm[!duplicated(mst1_metagenomicMutations_tsne_sterm), ]
+
+# fortsne[duplicated(fortsne), ] %>% nrow()
+dim(fortsne)
+set.seed(1234567)
+# set.seed(12314567)
+set.seed(007)
+
+tsne_sterm <- Rtsne(fortsne, dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+# tsne <- Rtsne(fortsne[,41:45], dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+tsne_plot <- as.data.frame(tsne_sterm$Y)
+tsne_plot$site <- rownames(fortsne)
+tsne_plot$sample <- str_split_fixed(tsne_plot$site, "_", 2)[,1]
+tsne_plot$number <- str_split_fixed(tsne_plot$site, "_", 2)[,2]
+tsne_plot$cheese <- revalue(tsne_plot$sample,c("101"="emmentaler","105"="emmentaler","115"="emmentaler","124"="emmentaler","150"="emmentaler","190"="emmentaler","202"="gruyere","203"="gruyere","280"="gruyere","302"="sbrinz","305"="sbrinz"))
+
+# colors <- c("#aa0000","#d40000","#ff0000","#ff2a2a","#ff5555","#ff8080","#009cf0","#34d0fc","#b4ecfc","#008181","#00dcdc")
+# colors <- c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#80e5ff","#008181","#00dcdc")
+
+tsne_plotss_sterm <- ggplot(tsne_plot, aes(x = V1, y = V2,color=sample,fill=sample,shape=cheese)) +labs(title=paste0("S. thermophilus SNV (n=",ncol(fortsne),")"))+
+    geom_mark_ellipse(aes(fill = sample),alpha=0.1) +geom_point(alpha = 0.8,size=5) + theme_classic() +theme(legend.position = "none")+scale_color_manual(values = colors)+scale_fill_manual(values = colors)+geom_text(aes(label=site),hjust=0, vjust=0)
+
+tsne_plotss_sterm
+
+###------------------------------
+##all togehter
+###------------------------------
+
+library(patchwork)
+
+tsne_plotss+tsne_plotss_sterm+tsne_plotss_ldel
+
+
+svg("~/Desktop/mid_thesis/report/figures/20200430/chapter2/Tsne_diversity",width=18,height=8)
+# png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm.png", width = 1800, height = 4800,res=300)
+tsne_plotss+tsne_plotss_sterm+tsne_plotss_ldel
+dev.off()
+```
+
+
+#plot snps
+
+###### Sterm
+```{r}
+library(readr)
+dim(snps_wide_final)
+snps_long_final <- gather(sample_relative_wide, sample, Snps, "starter 1":"starter 12", factor_key=TRUE,na.rm = TRUE) 
+##----------------
+##analysis
+##----------------
+
+table(snps_long_final$core)
+nrow(snps_long_final)
+sample_relative_safe_woSTRAINS_sub01 <- snps_long_final
+table(sample_relative_safe_woSTRAINS_sub01$species)
+
+table(sample_relative_safe_woSTRAINS_sub01$culture,sample_relative_safe_woSTRAINS_sub01$sample)
+
+
+# sample_relative_safe_woSTRAINS_sub01 <- sample_relative_safe_woSTRAINS[which(sample_relative_safe_woSTRAINS$significance!="MODIFIER"),]
+nrow(sample_relative_safe_woSTRAINS_sub01)
+sample_relative_safe_woSTRAINS_sub02 <- sample_relative_safe_woSTRAINS_sub01
+sample_relative_safe_woSTRAINS_sub02 <- sample_relative_safe_woSTRAINS_sub01[which(sample_relative_safe_woSTRAINS_sub01$core=="core"),]
+nrow(sample_relative_safe_woSTRAINS_sub02)
+
+sample_relative_safe_woSTRAINS_sub03 <- sample_relative_safe_woSTRAINS_sub02[which(sample_relative_safe_woSTRAINS_sub02$Snps>0.03),]
+# sample_relative_safe_woSTRAINS_sub05 <- sample_relative_safe_woSTRAINS_sub03
+sample_relative_safe_woSTRAINS_sub04 <- sample_relative_safe_woSTRAINS_sub02[which(sample_relative_safe_woSTRAINS_sub02$Snps<=0.03),]
+sample_relative_safe_woSTRAINS_sub04$Snps <- 0
+nrow(sample_relative_safe_woSTRAINS_sub04)
+sample_relative_safe_woSTRAINS_sub05 <- rbind(sample_relative_safe_woSTRAINS_sub03,sample_relative_safe_woSTRAINS_sub04)
+sample_relative_safe_woSTRAINS_sub06 <- sample_relative_safe_woSTRAINS_sub05[which(sample_relative_safe_woSTRAINS_sub05$significance %in% c("MODERATE","HIGH")),]
+nrow(sample_relative_safe_woSTRAINS_sub05)
+table(sample_relative_safe_woSTRAINS_sub05$species)
+# sample_relative_safe_Sterm_final <- sample_relative_safe_woSTRAINS_sub06[which(sample_relative_safe_woSTRAINS_sub06$species %in %"S. thermophilus"),]
+
+sample_relative_safe_Sterm_final <- sample_relative_safe_woSTRAINS_sub06[which(sample_relative_safe_woSTRAINS_sub06$species %in% c("L. delbrueckii","S. thermophilus")),]
+sample_relative_safe_Sterm_final_wide <- spread(sample_relative_safe_Sterm_final, sample, Snps)  %>%replace(is.na(.), 0)
+sample_relative_safe_Sterm_final_wide
+table(sample_relative_safe_Sterm_final$sampleComplete)
+sample_relative_safe_Sterm_final_new <- sample_relative_safe_Sterm_final %>% select(c(-"species.x",-"effect",-"significance",-"geneName",-"COG_Functional_Category",-"Repeat_cluster",-"core"))
+
+sample_relative_safe_Sterm_final_new$sampleComplete <- paste0(sample_relative_safe_Sterm_final_new$culture,"_",sample_relative_safe_Sterm_final_new$sample)
+sample_relative_safe_Sterm_final_new <- sample_relative_safe_Sterm_final_new %>% select(c(-"culture",-"sample"))
+
+sample_relative_safe_Sterm_final_wide <- spread(sample_relative_safe_Sterm_final_new, sampleComplete, Snps)  %>%replace(is.na(.), 0)
+# sample_relative_safe_Sterm_final_wide[] %>% select()
+colnames(sample_relative_safe_Sterm_final_wide)
+dim(sample_relative_safe_Sterm_final_wide)
+
+sample_relative_safe_Sterm_final_wide_filtered <- sample_relative_safe_Sterm_final_wide[,c(1,which(colSums(sample_relative_safe_Sterm_final_wide[,-1])>0)+1)]
+dim(sample_relative_safe_Sterm_final_wide_filtered)
+colnames(sample_relative_safe_Sterm_final_wide_filtered)
+
+sample_relative_safe_Sterm_final_wide_filtered_long <-  gather(sample_relative_safe_Sterm_final_wide_filtered, sampleComplete, Snps, "101_starter 1":"305_starter 4", factor_key=TRUE,na.rm = TRUE) 
+
+sample_relative_safe_Sterm_final_wide_filtered_long$culture <- str_split_fixed(sample_relative_safe_Sterm_final_wide_filtered_long$sampleComplete, "_", 2)[,1]
+
+sample_relative_safe_Sterm_final_wide_filtered_long$sample <- str_split_fixed(sample_relative_safe_Sterm_final_wide_filtered_long$sampleComplete, "_", 2)[,2]
+sample_relative_safe_Sterm_final_wide_filtered_long$species <- str_split_fixed(sample_relative_safe_Sterm_final_wide_filtered_long$site, "_", 4)[,1]
+table(sample_relative_safe_Sterm_final_wide_filtered_long$sample)
+  # sample_relative_safe_Sterm_final_longAll <-
+sample_relative_safe_woSTRAINS <- sample_relative_safe_Sterm_final_wide_filtered_long
+sample_relative_safe_Sterm_final_wide_filtered_long$sample = factor(sample_relative_safe_Sterm_final_wide_filtered_long$sample, levels=c("starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12"))
+table(sample_relative_safe_Sterm_final_wide_filtered_long$culture,sample_relative_safe_Sterm_final_wide_filtered_long$sample)
+  ##============
+### plot Streptococcus thermophius
+   ##============
+
+sample_relative_safe_woSTRAINS$sample <- droplevels(sample_relative_safe_woSTRAINS$sample)
+levels(sample_relative_safe_Sterm_final_wide_filtered_long$sample)
+sample_relative_safe_Sterm_final_wide_filtered_long_woZero <- sample_relative_safe_Sterm_final_wide_filtered_long %>% filter(Snps>0)
+  ##============
+### plot 
+   ##============
+
+all_colours <- rev(c("#EB4D4D","#10B552") )
+# all_colours <- rev(c("#EB4D4D") ) 
+
+# sample_relative_safe_Sterm_final <- sample_relative_safe_woSTRAINS_sub06[which(sample_relative_safe_woSTRAINS_sub06$species %in% c("L. delbrueckii","S. thermophilus")),]
+sample_relative_safe_Sterm_final_wide_filtered_long_woZero$species <- revalue(sample_relative_safe_Sterm_final_wide_filtered_long_woZero$species,c("CP046131"="L. delbrueckii","CP046134"="S. thermophilus"))
+# 
+# table(sample_relative_safe_Sterm_final_wide_filtered_long_woZero$species)
+
+# colnames(sample_relative_safe_woSTRAINS)
+table(sample_relative_safe_Sterm_final_wide_filtered_long_woZero$culture,sample_relative_safe_Sterm_final_wide_filtered_long_woZero$sample)
+##plot
+  p2 <- ggplot(sample_relative_safe_Sterm_final_wide_filtered_long_woZero,aes(x=sample,y=Snps,group=site,color=species,fill=species))+ geom_line(size=0.3, alpha=.1)+ 
+    # facet_wrap(culture~.,nrow = 11)+
+        # facet_wrap(culture~.,ncol = 11,scales = "free_x", space = "free")+
+            facet_grid(species~culture,scales = "free_x", space = "free")+
+            # ggforce::facet_row(vars(culture)~species,scales = "free_x", space = "free")+
+            # ggforce::facet_col(vars(species),scales = "free_x", space = "free")+
+     labs("",
+         x=" ",
+         y="Alternative allele frequency")+
+      theme_classic()+
+   scale_fill_manual(values=all_colours)+
+   scale_color_manual(values=all_colours)+
+    scale_x_discrete( expand = c(0, 0)) +
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+          rect = element_rect(fill = "transparent"), # all rectangles      #axis.text.x = element_blank(),
+          legend.position="none",
+          panel.spacing = unit(1, "lines")
+  )
+  
+  # p2
+  
+
+# svg("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.svg",width=2.5,height=2.5)
+# png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm.png", width = 1800, height = 4800,res=300)
+# png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm_wide.png", width = 6000, height = 1800,res=300)
+# png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm_wide.png", width = 6000, height = 1800,res=300)
+svg("~/Desktop/mid_thesis/report/figures/20200430/chapter2/snpscalled_sterm_wide.svg", width = 12, height = 5)
+
+
+p2
+dev.off()
+```
+
+####all samples together
+Here, I put all cultures together and see if I can phase them with tSNE
+
+```{r}
+
+# sample_relative_safe_Sterm_final$sampleNew <- paste0(sample_relative_safe_Sterm_final$culture,"_",sample_relative_safe_Sterm_final$sample)
+# table(sample_relative_safe_Sterm_final$sampleNew)
+# colnames(sample_relative_safe_Sterm_final_wide)
+sample_relative_safe_Sterm_final_longAll <- gather(sample_relative_safe_Sterm_final_wide, sample, Snps, "starter 1":"starter 12", factor_key=TRUE,na.rm = TRUE) 
+
+sample_relative_safe_Sterm_final_longAll$sampleNew <- paste0(sample_relative_safe_Sterm_final_longAll$culture,"_",sample_relative_safe_Sterm_final_longAll$sample)
+dim(sample_relative_safe_Sterm_final_longAll)
+# snps_freebayes_long <- gather(snps_freebayes, sample, Snps, colnames(snps_freebayes)[6]:colnames(snps_freebayes)[ncol(snps_freebayes)], factor_key=TRUE,na.rm = TRUE) 
+
+sample_relative_safe_Sterm_final_longAll_filtered <- sample_relative_safe_Sterm_final_longAll %>% filter(sampleNew %in% c("101_starter 1","101_starter 2","101_starter 3","101_starter 4","101_starter 5","101_starter 6","101_starter 7","105_starter 1","105_starter 2","105_starter 3","105_starter 4","105_starter 5","105_starter 6","105_starter 7","105_starter 8","105_starter 9","105_starter 10","105_starter 11","105_starter 12","115_starter 1","115_starter 2","124_starter 1","124_starter 2", "124_starter 3","150_starter 1","150_starter 2","150_starter 3","150_starter 4","150_starter 5","150_starter 6","190_starter 1","190_starter 2","190_starter 3","202_starter 1","202_starter 2","202_starter 3","202_starter 4","202_starter 5","202_starter 6", "202_starter 7","202_starter 8","203_starter 1","203_starter 2","203_starter 3","203_starter 4","280_starter 1","280_starter 2", "280_starter 3","302_starter 1", "302_starter 2","305_starter 1", "305_starter 2","305_starter 3","305_starter 4"))
+
+sample_relative_safe_Sterm_final_longAll_filtered_prep <- sample_relative_safe_Sterm_final_longAll_filtered %>% select(-sample)
+
+sample_relative_safe_Sterm_final_wide_new <- spread(sample_relative_safe_Sterm_final_longAll_filtered_prep, sampleNew, Snps)  %>%replace(is.na(.), 0)
+colnames(sample_relative_safe_Sterm_final_wide_new)
+sample_relative_safe_Sterm_final_longAll_final <- gather(sample_relative_safe_Sterm_final_wide_new, sampleNew, Snps, "101_starter 1":"305_starter 4", factor_key=TRUE,na.rm = TRUE) 
+
+# 
+# snps_long$samplesNew <- revalue(snps_long$sample,c("101_starter 1","101_starter 2","101_starter 3","101_starter 4","101_starter 5","101_starter 6","101_starter 7","105_starter 1","105_starter 2","105_starter 3","105_starter 4","105_starter 5","105_starter 6","105_starter 7","105_starter 8","105_starter 9","105_starter 10","105_starter 11","105_starter 12","115_starter 1","115_starter 2","124_starter 1","124_starter 2", "124_starter 3","150_starter 1","150_starter 2","150_starter 3","150_starter 4","150_starter 5","150_starter 6","190_starter 1","190_starter 2","190_starter 3","202_starter 1","202_starter 2","202_starter 3","202_starter 4","202_starter 5","202_starter 6", "202_starter 7","202_starter 8","203_starter 1","203_starter 2","203_starter 3","203_starter 4","280_starter 1","280_starter 2", "280_starter 3","302_starter 1", "302_starter 2","305_starter 1", "305_starter 2","305_starter 3","305_starter 4"))
+# 
+
+
+
+p3 <- ggplot(sample_relative_safe_Sterm_final_longAll_final,aes(x=sampleNew,y=Snps,group=site,color=species.x,fill=species.x))+ geom_line(size=0.2, alpha=.1)+ 
+    # facet_wrap(culture~.,nrow = 11)+
+     labs("",
+         x=" ",
+         y="Alternative allele frequency")+
+      theme_classic()+
+   scale_fill_manual(values=all_colours)+
+   scale_color_manual(values=all_colours)+
+    scale_x_discrete( expand = c(0, 0)) +
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+          rect = element_rect(fill = "transparent"), # all rectangles      #axis.text.x = element_blank(),
+          legend.position="none"
+  )
+  
+  # p3
+  
+
+# svg("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.svg",width=2.5,height=2.5)
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm_wide.png", width = 4800, height = 1800,res=300)
+p3
+dev.off()  
+
+```
+
+####tSNE
+
+```{r}
+
+library(forcats) 
+library(Rtsne)
+library(fpc)
+library(ggrepel)
+###--------------------------------------------------------------------
+##colors
+###--------------------------------------------------------------------
+
+# colorsTSNE <- c("#DD8D29","#E2D200","#46ACC8","black","#B40F20")
+
+# colorsTSNE <- c("#E69F00", "#56B4E9", "#009E73",
+          # "#F0E442", "#0072B2", "#D55E00", "#CC79A7","grey","#000000")
+
+# colorsTSNE <- rev(c("#FF9E79","#FB6D4C","#C23B22","#8A0000","#580000","#D55E00"))
+###--------------------------------------------------------------------
+##subset
+###--------------------------------------------------------------------
+
+# mst1_metagenomicMutations <- sample_relative_wide %>% filter(.,species=="S. thermophilus") %>% filter(.,significance %in% c("MODERATE","HIGH")) %>% filter(.,mst1>0.9 & mst2 <=0.9) %>% add_column(group="mst1") %>%replace(is.na(.), 0)
+# mst1_metagenomicMutations <- sample_relative_safe_Sterm_final_wide %>% filter(.,mst1>0.9 & mst2 <=0.9)%>% add_column(group="mst1") 
+
+
+# mst1_metagenomicMutations_long <-  mst1_metagenomicMutations %>% gather(., sample, Snps, "Lyo\n1996","Lyo\n2012","Lyo\n2014","working\nstock","starter\nculture\n2012","starter\nculture\n2018","cheesemaking\nday1","cheesemaking\nday2", factor_key=TRUE,na.rm = TRUE)# %>% filter(.,Snps>0.005)
+
+# mst1_metagenomicMutations_tsne <- sample_relative_safe_Sterm_final_wide_new
+
+
+###--------------------------------------------------------------------
+##prep for tSNE
+###--------------------------------------------------------------------
+
+
+
+fortsne <- sample_relative_safe_Sterm_final_wide_new %>% select(.,"site","101_starter 1","101_starter 2","101_starter 3","101_starter 4","101_starter 5","101_starter 6","101_starter 7","105_starter 1","105_starter 2","105_starter 3","105_starter 4","105_starter 5","105_starter 6","105_starter 7","105_starter 8","105_starter 9","105_starter 10","105_starter 11","105_starter 12","115_starter 1","115_starter 2","124_starter 1","124_starter 2", "124_starter 3","150_starter 1","150_starter 2","150_starter 3","150_starter 4","150_starter 5","150_starter 6","190_starter 1","190_starter 2","190_starter 3","202_starter 1","202_starter 2","202_starter 3","202_starter 4","202_starter 5","202_starter 6", "202_starter 7","202_starter 8","203_starter 1","203_starter 2","203_starter 3","203_starter 4","280_starter 1","280_starter 2", "280_starter 3","302_starter 1", "302_starter 2","305_starter 1", "305_starter 2","305_starter 3","305_starter 4")
+fortsne <- fortsne[!duplicated(fortsne[,-1]), ]
+# fortsne[duplicated(fortsne), ] %>% nrow()
+
+set.seed(1234567)
+# set.seed(12314567)
+
+tsne <- Rtsne(fortsne[,-1], dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+# tsne <- Rtsne(fortsne[,41:45], dims = 2, perplexity=10, verbose=TRUE, max_iter = 500)
+tsne_plot <- as.data.frame(tsne$Y)
+tsne_plot$site <- fortsne[,1]
+tsne_plot$species <- paste(str_split_fixed(tsne_plot$site, "_", 5)[,1],str_split_fixed(tsne_plot$site, "_", 5)[,2],sep = "_") %>%  gsub("_",". ",.)
+
+
+
+##------------plot blank
+# ggplot(tsne_plot,aes(x=V1,y=V2))+geom_point()
+
+##------------clusters
+
+# set.seed(123456)
+
+set.seed(1234567)
+ds.real = dbscan(tsne_plot[,c(1,2)], 15)
+# decreasing_clusternames <- (names(sort(table(ds.real$cluster),decreasing = TRUE)))
+# change_name <- setNames(1:length(decreasing_clusternames),decreasing_clusternames)
+# clusterNames <- revalue(as.factor(ds.real$cluster),change_name)
+# clusterNames<- revalue(clusterNames,c("4"="1","6"="1","7"="1","10"="1","11"="1","5"="4","8"="5","9"="6"))##add certain clusters to others
+tsne_plot$density = factor(ds.real$cluster)
+# levels(tsne_plot$density) <- c(levels(tsne_plot$density), "5")
+
+# special_cases <- c("CP046134_494890_A_G","CP046134_482906_A_C")
+# tsne_plot[which(tsne_plot$site %in% special_cases),"density"] <- "5"
+ds.cent = tsne_plot %>% group_by(density) %>% select(V1,
+    V2) %>% summarize_all(mean)
+ggplot(tsne_plot, aes(x = V1, y = V2, colour = density)) +
+    geom_point(alpha = 0.3) + theme_bw() + geom_label_repel(aes(label = density),
+    data = ds.cent) + guides(colour = FALSE)
+
+
+```
+
+
+
+###### Ldel
+```{r}
+
+
+
+
+sample_relative_safe_Sterm_final <- sample_relative_safe_woSTRAINS_sub06[which(sample_relative_safe_woSTRAINS_sub06$species=="L. delbrueckii"),]
+sample_relative_safe_Sterm_final_wide <- spread(sample_relative_safe_Sterm_final, sample, Snps)  %>%replace(is.na(.), 0)
+dim(sample_relative_safe_Sterm_final_wide)
+
+  ##============
+### plot Streptococcus thermophius
+   ##============
+
+sample_relative_safe_woSTRAINS$sample <- droplevels(sample_relative_safe_woSTRAINS$sample)
+levels(sample_relative_safe_Sterm_final$sample)
+
+  ##============
+### plot 
+   ##============
+
+# all_colours <- rev(c("#EB4D4D","#10B552") ) 
+all_colours <- rev(c("#EB4D4D") ) 
+
+# colnames(sample_relative_safe_woSTRAINS)
+
+##plot
+  p2 <- ggplot(sample_relative_safe_Sterm_final,aes(x=sample,y=Snps,group=site,color=species.x,fill=species.x))+ geom_line(size=0.2, alpha=.1)+ 
+    facet_wrap(culture~.,nrow = 11)+
+     labs("",
+         x=" ",
+         y="Alternative allele frequency")+
+      theme_classic()+
+   scale_fill_manual(values=all_colours)+
+   scale_color_manual(values=all_colours)+
+    scale_x_discrete( expand = c(0, 0)) +
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+          rect = element_rect(fill = "transparent"), # all rectangles      #axis.text.x = element_blank(),
+          legend.position="none"
+  )
+  
+  p2
+  
+
+# svg("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.svg",width=2.5,height=2.5)
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_sterm.png", width = 1800, height = 4800,res=300)
+p2
+dev.off()
+
+
+##------------------------------------------------------
+##old
+##------------------------------------------------------
+
+
+
+
+
+library(readr)
+snps_long_final <- read_csv("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/snps_analysed_all.csv")
+
+##----------------
+##01_remove strains
+##----------------
+# sample_relative_safe_woSTRAINS <- snps_long_final[which(snps_long_final$species %in% c("L. delbrueckii","S. thermophilus")),] 
+sample_relative_safe_woSTRAINS <- snps_long_final[which(snps_long_final$species %in% c("L. delbrueckii")),] 
+
+
+sample_relative_safe_woSTRAINS$samplesNew = factor(sample_relative_safe_woSTRAINS$samplesNew, levels=c("starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12"))
+sample_relative_safe_woSTRAINS$samplesNew <- droplevels(sample_relative_safe_woSTRAINS$samplesNew)
+
+  ##============
+### plot 
+   ##============
+
+# all_colours <- rev(c("#EB4D4D","#10B552") ) 
+all_colours <- rev(c("#10B552") ) 
+
+# colnames(sample_relative_safe_woSTRAINS)
+
+##plot
+  p3 <- ggplot(sample_relative_safe_woSTRAINS,aes(x=samplesNew,y=Snps,group=site,color=species,fill=species))+ geom_line(size=0.2, alpha=.1)+ 
+    facet_wrap(culture~.,nrow = 11)+
+     labs("",
+         x=" ",
+         y="Alternative allele frequency")+
+      theme_classic()+
+   scale_fill_manual(values=all_colours)+
+   scale_color_manual(values=all_colours)+
+    scale_x_discrete( expand = c(0, 0)) +
+    theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+          rect = element_rect(fill = "transparent"), # all rectangles      #axis.text.x = element_blank(),
+          legend.position="none"
+  )
+  
+  p3
+  
+
+# svg("~/Desktop/presenations/my_presentations/2020_groupmeeting/figures/fitnesMatrix.svg",width=2.5,height=2.5)
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_ldel.png", width = 1800, height = 4800,res=300)
+p3
+dev.off()
+library(patchwork)
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled.png", width = 3000, height = 4800,res=300)
+p2+p3
+dev.off()
+
+```
+
+
+#nucleotide diversity
+```{r}
+library(readr)
+snps_long_final <- read_csv("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/snps_analysed_all.csv")
+
+sample_relative_safe_woSTRAINS <- snps_long_final %>% filter(species %in% c("L. delbrueckii","S. thermophilus")) %>%  filter(Snps>0.05)
+snp_count <- as.data.frame(table(sample_relative_safe_woSTRAINS$culture,sample_relative_safe_woSTRAINS$species,sample_relative_safe_woSTRAINS$samplesNew)) %>% dplyr::rename(culture=Var1,species=Var2,sample=Var3)
+
+snp_count <- snp_count %>% filter(Freq>0)
+snp_count$sample = factor(snp_count$sample, levels=c("starter 1","starter 2","starter 3","starter 4","starter 5","starter 6","starter 7","starter 8","starter 9","starter 10","starter 11","starter 12"))
+snp_count$sample <- droplevels(snp_count$sample)
+
+snp_count_ldel <- snp_count %>% filter(species=="L. delbrueckii")
+
+   pldel <- ggplot()+ #stat_summary(fun.y=sum, geom="line")+
+     geom_point(data = snp_count_ldel,aes(y = Freq, x = sample),fill="#10B552",color="#10B552")+
+     geom_line(data = snp_count_ldel,aes(y = Freq, x = sample,group=species),fill="#10B552",color="#10B552")+
+     facet_wrap(culture~.,nrow = 11)+
+   labs("",
+         x="",
+         y="SNPs",
+          title="")+
+  theme_classic()+
+     scale_x_discrete( expand = c(0, 0)) +
+ theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+       #axis.text.x=element_blank(),
+          rect = element_rect(fill = "transparent"))
+  pldel
+
+  
+  ##------sterm
+  
+  snp_count_sterm <- snp_count %>% filter(species=="S. thermophilus")
+
+   psterm <- ggplot()+ #stat_summary(fun.y=sum, geom="line")+
+     geom_point(data = snp_count_sterm,aes(y = Freq, x = sample),fill="#EB4D4D",color="#EB4D4D")+
+     geom_line(data = snp_count_sterm,aes(y = Freq, x = sample,group=species),fill="#EB4D4D",color="#EB4D4D")+
+     facet_wrap(culture~.,nrow = 11)+
+   labs("",
+         x="",
+         y="SNPs",
+          title="")+
+  theme_classic()+
+     scale_x_discrete( expand = c(0, 0)) +
+ theme(axis.text.x = element_text(angle = 75, hjust = 1,size=9),
+       #axis.text.x=element_blank(),
+          rect = element_rect(fill = "transparent"))
+  psterm
+  
+library(patchwork)
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_nucleotide_diversity.png", width = 3000, height = 4800,res=300)
+psterm+pldel
+dev.off()
+
+
+###----------------------------
+##box plot
+###----------------------------
+
+snp_count_ldel_extended <- snp_count_ldel%>% mutate(nucleotideDiversity=Freq/22000)
+snp_count_sterm_extended <- snp_count_sterm%>% mutate(nucleotideDiversity=Freq/18000)
+all_nucleotideDiv <- rbind(snp_count_ldel_extended,snp_count_sterm_extended)
+all_colours <- rev(c("#EB4D4D","#10B552") )
+
+boxplot <- ggplot(all_nucleotideDiv,aes(x=culture,y=nucleotideDiversity,group=culture,fill=species,color=species))+geom_boxplot()+theme_classic()+facet_wrap(species~.,scales="free")+scale_fill_manual(values =all_colours )+
+  scale_color_manual(values = all_colours)+
+  labs(y="Nucleotide diversity [%]",
+       x="Cheese starter culture")+
+  theme(legend.position = "none",axis.text.x = element_text(angle = 75, hjust = 1,size=9))
+
+png("~/Desktop/Projects/2020_strainDelineation/05_SNP_called/plots/snpsCalled_nucleotide_diversity_boxplot.png", width = 1500, height = 1000,res=300)
+boxplot
+dev.off()
+
+
+```
+
+
+
+#single strain analysis
+
+Here, I analyse the different reference genome sequences
+
+```{bash}
+
+mkdir -p 
+
+
+```
+
+```{bash}
+scp -r /media/vincent/Elements/seqData/20200515_UniBe vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/
+
+```
+
+###strain information
+
+get strain information
+
+```{bash}
+
+scp /home/vincent/Desktop/Projects/2020_strainDelineation/01_logs/isolatedStrainsRMK.csv vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/99_log/
+
+```
+
+
+### renaming
+
+```{bash}
+
+
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+cat /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_L*_R1_*.fastq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R1.fastq.gz
+
+cat /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_L*_R2_*.fastq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R2.fastq.gz
+
+
+done #samplezzz
+
+```
+
+
+
+###FastQC
+In a first step we creat [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) reports for all the libraries. 
+These are then visualized with [MultiQC](https://multiqc.info/)
+
+```{bash fastqc}
+source /archiv/Projects/2018_Culturomics/02_script/fileShortcuts.sh
+threads=8
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+
+    fastqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R1.fastq.gz -t ${threads} -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/
+    fastqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R2.fastq.gz -t ${threads} -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/
+    
+done #samplezzz
+
+  mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/MultiQC
+
+  
+  multiqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/ -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/MultiQC
+
+
+```
+
+### Trim-galore
+In the following we clip adaptors with [trim-galore]()
+
+```{bash trimGalore}
+source /archiv/Projects/2018_Culturomics/02_script/fileShortcuts.sh
+threads=30
+id=RMK202_withOld
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+  echo "##=============="
+  echo ${samplezzKurz}
+  echo "##=============="
+      rm -r /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}
+      mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}
+      trim_galore -paired -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz} \
+        /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R1.fastq.gz  \
+        /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R2.fastq.gz 
+        
+  echo "##=============="
+  echo ${id} "fastQC of trimmed"
+  echo "##=============="
+      
+    mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/fastQC/
+      
+    fastqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R1.fastq.gz -t ${threads} -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/fastQC/
+    
+    fastqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/${samplezzz}/${samplezzKurz}_R2.fastq.gz -t ${threads} -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/fastQC/
+    
+        
+  done 
+  
+python3 /home/vincent/miniconda2/bin/multiqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/fastQC/ -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore//Multiqc
+
+
+
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/fastQC/
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+
+echo "/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/${names}/bwaMapping2DB/bamqc" >> /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/log/multiqc_mapping_logfile.txt
+   
+
+done
+
+
+  mkdir -p /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore//Multiqc
+
+  multiqc /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/fastQC/ -o /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore//Multiqc
+
+
+echo "/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/${names}/bwaMapping2DB/bamqc" >> /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/log/multiqc_mapping_logfile.txt
+   
+
+samtools index /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/${names}/bwaMapping2DB/${names}_rawIllumina_bwamem_sorted.bam &
+
+
+done
+
+###--------------------------------multiQC
+
+rm -r /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL//MultiQC/
+mkdir -p /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL//MultiQC/
+
+
+  multiqc --config /archiv/logs/multiQC_config.txt --file-list /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL/log/multiqc_mapping_logfile.txt \
+  -o archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_demultiplexed/di_K2_6h/Polishing_FINAL//MultiQC/
+
+
+```
+
+```{bash}
+
+
+scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore//Multiqc /home/vincent/Desktop/Projects/2020_strainDelineation/01_logs
+
+```
+###metaphlan
+I do metaphlan to check for contamination
+
+```{bash}
+
+
+rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/115_i_24728.fasta
+
+ rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/202_i_24753.fasta
+ rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/202_i_24754.fasta
+ rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/190_i_24736.fasta
+
+rm /data/Project/2020_StarterCultureDiversity/04_metaphlan/allStrains_metaphlan.txt
+#for speciesss in $(echo "L.delbrueckii S.thermophilus")
+for speciesss in $(echo "S.thermophilus")
+do
+rm -r /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}
+mkdir -p /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}
+echo "-----------------"
+echo ${speciesss}
+#for strainzzz in $(grep "^${speciesss}" /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv |cut -f 11 |head -1)
+for strainzzz in $(echo "24853 24854 24855")
+do
+culture=$(awk -F "\t" -v strainsss="$strainzzz" '{OFS="\t"}{if($11==strainsss)print $4}' /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv|sed 's/RMK//g')
+
+echo -e ${strainzzz} " from " ${culture}
+
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}/${culture}_i_${strainzzz}/{bowtie2ouput,metaphlan_profile}
+ 
+   metaphlan2 --nproc 30 --input_type fastq <(zcat /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/FAM${strainzzz}/FAM${strainzzz}_R1_val_1.fq.gz  /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/FAM${strainzzz}/FAM${strainzzz}_R2_val_2.fq.gz ) \
+   --bowtie2out  /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}/${culture}_i_${strainzzz}//bowtie2ouput/metagenome_${strainzzz}_trimmed.bowtie2.bz2 --nproc 37 > \
+   /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}/${culture}_i_${strainzzz}//metaphlan_profile/profiled_metagenome_${names}_trimmed.txt
+   
+   grep "s__" /data/Project/2020_StarterCultureDiversity/04_metaphlan/${speciesss}/${culture}_i_${strainzzz}//metaphlan_profile/profiled_metagenome_${names}_trimmed.txt |grep "t__" -v|awk -F "[\t|]" -v culturess="$culture" -v strainzzzss="$strainzzz" -v specisss="$speciesss" '{OFS="\t"}{print culturess,strainzzzss,specisss,$7,$8}' >>  /data/Project/2020_StarterCultureDiversity/04_metaphlan/allStrains_metaphlan.txt
+   
+done #strainzzz
+done #species
+
+
+
+
+```
+
+
+
+###spades
+
+In this step we assemble the raw reads of the isolate with [spades](http://bioinf.spbau.ru/en/spades3.7).
+
+```{bash spades}
+source /archiv/Projects/2018_Culturomics/02_script/fileShortcuts.sh
+
+threads=35
+num=1
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+  echo "##=============="
+  echo ${samplezzKurz}
+  echo $num
+  echo "##=============="
+       mkdir -p /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly/
+ 
+ 
+     /home/vincent/miniconda2/pkgs/spades-3.13.0-0/bin/spades.py --pe1-1 /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R1_val_1.fq.gz \
+       --pe1-2 /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R2_val_2.fq.gz \
+       -o /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly//assembly_Spades_20200516 -t ${threads} -m 100
+
+   num=$((num+1))
+
+    done
+
+#---------------
+##short info
+##---------------
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+
+ count=$(grep ">" -c /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly//assembly_Spades_20200516/contigs.fasta)
+   
+     #echo "##=============="
+  echo -e ${samplezzKurz} " : " ${count}
+#  echo "##=============="
+ 
+    done
+##---------------
+##PostAssemblyAnalysis
+##---------------
+for samplezzz in $(ls /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/gz/20200515_UniBe/ )
+do
+
+samplezzKurz=$(echo ${samplezzz} | cut -d _ -f 1)
+
+  echo "##=============="
+  echo ${samplezzKurz}
+  echo "##=============="
+    #tail -3 $mainPath/03_metaphlan2/${id}_trimmed/metaphlan_profile/profiled_metagenome_${id}_trimmed.txt
+    PostAssemblyAnalysis.R -a /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly//assembly_Spades_20200516/scaffolds.fasta \
+      -F /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R1_val_1.fq.gz \
+      -R /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R2_val_2.fq.gz \
+      -o /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly/PostaAssembly \
+      -t 35
+    
+    done
+
+
+
+
+```
+
+###metabat
+
+The sample 24728 has a s__Pediococcus_pentosaceus contaminatino. this is most likely from sequencing as we had samples of pediococcus on the same lane. I am going to take them out by binning. 
+
+```{bash}
+##-------
+##mapping
+##-------
+samplezzKurz=FAM24728
+threads=30
+rm - /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/
+mkdir -p /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/{binning,mapping}
+
+gunzip -c /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R1_val_1.fq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R1_val_1.fq
+
+gunzip -c /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R2_val_2.fq.gz > /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R2_val_2.fq
+
+bwa mem -t ${threads} /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly//assembly_Spades_20200516/contigs.fasta \
+  /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R1_val_1.fq /data/Project/2020_StarterCultureDiversity/01_Data/20200515_genomeSeq/01_rawdata/trimmed_Galore/gz/${samplezzKurz}/${samplezzKurz}_R2_val_2.fq | samtools sort -@${threads} -O BAM -o /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/mapping/${samplezzKurz}_rawIllumina_bwamem_sorted.bam
+
+
+##-------
+##cleaning contigs
+##-------
+
+metabat2 -t ${threads} \
+  -i /data/Project/2020_StarterCultureDiversity//06_Spades/${samplezzKurz}/assembly//assembly_Spades_20200516/contigs.fasta \
+  /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/mapping/${samplezzKurz}_rawIllumina_bwamem_sorted.bam \
+  -o /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/binning
+  
+  
+##-------
+##BLAST QC
+##-------
+
+for genome in $(ls /archiv/Projects/2018_Culturomics/06_Spades//${id}/metabat2/${date}/)
+  do
+  
+  genome_renamed=$(echo $genome |sed 's/.fa//g'  )
+  
+  #mkdir -p /archiv/Projects/2018_Culturomics/06_Spades//${id}/metabat2/${date}/${genome_renamed}_metaphlan
+  
+  
+   infoseq /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/binning.1.fa
+   infoseq /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/${samplezzKurz}/binning.2.fa
+  
+ 
+  done
+
+```
+
+
+###PROKKA of strains
+
+```{bash}
+
+
+
+export PATH=/home/vincent/apps/ncbi-blast-2.10.0+/bin/:$PATH
+speciesss=$(echo "S.thermophilus")
+genus=Streptococcus
+echo ${speciesss}
+
+for strainzzz in $(grep "^${speciesss}" /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv |cut -f 11)
+do
+culture=$(awk -F "\t" -v strainsss="$strainzzz" '{OFS="\t"}{if($11==strainsss)print $4}' /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv|sed 's/RMK//g')
+
+echo -e ${strainzzz} " from " ${culture}
+
+genomeszzz=$(ls /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/ |grep  "_${strainzzz}" )
+
+rm -r /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz}
+#mkdir -p /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz}
+
+/usr/bin/perl /usr/bin/prokka --cpus 30 --outdir /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz} --force --usegenus --genus ${speciesss} --locustag ${strainzzz} --proteins proteins.faa --evalue 0.001 --addgenes /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/${genomeszzz}
+
+#prokka --outdir /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz} --force --usegenus --genus ${speciesss} --locustag ${strainzzz} --proteins proteins.faa --evalue 0.001 --addgenes /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/${genomeszzz}
+
+
+done #strainzzz
+
+##-----------------------
+##l.delbrueckii
+
+export PATH=/home/vincent/apps/ncbi-blast-2.10.0+/bin/:$PATH
+
+speciesss=$(echo "L.delbrueckii")
+genus=Lactobacillus
+echo ${speciesss}
+
+for strainzzz in $(grep "^${speciesss}" /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv |cut -f 11)
+do
+culture=$(awk -F "\t" -v strainsss="$strainzzz" '{OFS="\t"}{if($11==strainsss)print $4}' /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv|sed 's/RMK//g')
+
+echo -e ${strainzzz} " from " ${culture}
+
+genomeszzz=$(ls /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/ |grep  "_${strainzzz}" )
+
+rm -r /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz}
+mkdir -p /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz}
+
+/usr/bin/perl /usr/bin/prokka --cpus 30 --outdir /data/Project/2020_StarterCultureDiversity/06_PROKKA/${speciesss}/${culture}_${strainzzz} --force --usegenus --genus ${speciesss} --locustag ${strainzzz} --proteins proteins.faa --evalue 0.001 --addgenes /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/${genomeszzz}
+
+
+
+done #strainzzz
+```
+
+analysis
+```{bash}
+#grep "ISfinder:" -i /data/Project/2020_StarterCultureDiversity/06_PROKKA/S.thermophilus/105_24726/*.gff |wc -l
+```
+
+
+
+##Dialact strains
+
+
+
+####download
+
+Here, I download the spades genomes of the strains isolated out of the cheese starter cultures
+
+```{bash}
+
+##=============
+##Download Genomes
+##=============
+date=20200516
+downloadFormat=fna
+
+##-----------------
+##Dialact
+##-----------------
+
+   species=$(echo "Streptococcus_salivarius")
+    species=$(echo "Lactobacillus_delbrueckii")
+   echo ==========================
+   echo ${species}
+   echo ==========================
+   
+   DirectoryName=/data/Project/2020_StarterCultureDiversity//07_DialactStrains/${date}/Genomes/Dialact_02/
+   #species=Streptococcus_thermophilus
+   rm -r $DirectoryName/$species
+   mkdir -p $DirectoryName/$species
+ 
+ python3 /home/vincent/apps/Dialact_access.py -u vincent_somerville \
+  -t $species \
+  -f $downloadFormat \
+  -s $DirectoryName/$species
+ 
+
+```
+
+Get strains that have been isolated from the cheese starter culture and have been sequenced. 
+Noam added the list with additional infomormation. 
+Here, I transfer it to the big machine. 
+
+
+```{bash}
+
+scp /home/vincent/Desktop/Projects/2020_strainDelineation/01_logs/20200113_Staemme_RMK_onlySequenced.csv vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/
+
+```
+
+isolate the strains from all strains
+```{bash}
+rm -r /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/
+mkdir -p /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/{Sterm,Ldel}
+for sampleszzz in $(sed '1d' /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/20200113_Staemme_RMK_onlySequenced.csv| cut -f 1 )
+do
+culture=$(grep "${sampleszzz}" /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/20200113_Staemme_RMK_onlySequenced.csv| cut -f 2|sed 's/ //g'|sed 's/RMK//g')
+echo -e ${sampleszzz} " from : "${culture}
+
+cat /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/Streptococcus_salivarius/FAM${sampleszzz}_*.fna > \
+  /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Sterm/${culture}_d_${sampleszzz}.fna
+cat /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/Lactobacillus_delbrueckii/FAM${sampleszzz}_*.fna > \
+  /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Ldel/${culture}_d_${sampleszzz}.fna
+done
+
+find /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Ldel/ -type f -empty -delete
+find /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Sterm/ -type f -empty -delete
+
+
+```
+
+
+#Strain collection
+
+Here, we do the analysis of the strain collection. 
+I am doing the following analysis:
+1. parSNP phylogeny. 
+2. ...
+
+
+### fastANI
+
+```{bash}
+for speciesss in $(echo "L.delbrueckii S.thermophilus")
+do
+rm -r /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}
+mkdir -p /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/{log,analysis}
+echo "-----------------"
+echo ${speciesss}
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/{log,analysis}
+for genomessss in $(ls /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes)
+do
+echo -e "/data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/"${speciesss}"/01_genomes/"${genomessss} >> /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/log/genomes.txt
+
+done
+done #speciesss
+###---------------------------
+##fastaANI
+###---------------------------
+for speciesss in $(echo "L.delbrueckii S.thermophilus")
+do
+fastANI --fragLen 1000 -t 37 --ql /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/log/genomes.txt \
+  --rl /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/log/genomes.txt \
+  -o /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/analysis/analysis.out
+done #speciesss
+###----------------------Sterm
+
+
+cut -f 3 /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/analysis/analysis.out |sort|uniq -c |head
+
+grep "74\." /data/Project/2020_StarterCultureDiversity/05_fastANI/${speciesss}/analysis/analysis.out
+
+```
+
+### ParSNP
+```{bash}
+##==========================================
+###-----------------preperation
+##==========================================
+
+
+##-------------------------------
+##prep for parSNP isolated Strains
+##-------------------------------
+rm -r /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/
+
+for speciesss in $(echo "L.delbrueckii S.thermophilus")
+do
+mkdir -p /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes
+echo "-----------------"
+echo ${speciesss}
+for strainzzz in $(grep "^${speciesss}" /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv |cut -f 11)
+do
+culture=$(awk -F "\t" -v strainsss="$strainzzz" '{OFS="\t"}{if($11==strainsss)print $4}' /data/Project/2020_StarterCultureDiversity/99_log/isolatedStrainsRMK.csv|sed 's/RMK//g')
+
+echo -e ${strainzzz} " from " ${culture}
+
+tmp=$(ls /data/Project/2020_StarterCultureDiversity//06_Spades/FAM24731/assembly/)
+cat /data/Project/2020_StarterCultureDiversity//06_Spades/FAM${strainzzz}/assembly/${tmp}/contigs.fasta > /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${speciesss}/01_genomes/${culture}_i_${strainzzz}.fna
+
+
+
+done #strainzzz
+done #species
+
+##-------------------------------
+##prep for parSNP isolated Dialact
+##-------------------------------
+
+cp /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Sterm/* /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/
+
+cp /data/Project/2020_StarterCultureDiversity//07_DialactStrains/20200516/Genomes/Dialact_02/used/Ldel/* /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/01_genomes/
+
+find /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/ -type f -empty -delete
+find /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/01_genomes/ -type f -empty -delete
+
+##-------------------------------
+##change fna to fasta
+##-------------------------------
+
+###I have to make all genomes to fasta files and not fna
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/ |grep ".fna"|sed 's/.fna//g')
+do
+
+mv /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/${genomesss}.fna /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/${genomesss}.fasta 
+
+done
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/01_genomes/ |grep ".fna"|sed 's/.fna//g')
+do
+
+mv /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/01_genomes/${genomesss}.fna /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/01_genomes/${genomesss}.fasta 
+
+done
+
+##-------------------------------
+###still sample seems odd
+##-------------------------------
+
+rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/115_i_24728.fasta
+
+# rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/202_i_24753.fasta
+# rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/202_i_24754.fasta
+#  rm /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/202_i_24755.fasta
+
+cat /data/Project/2020_StarterCultureDiversity//06_Spades/metabat_contamination_Clean/FAM24728//binning.1.fa > /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/01_genomes/115_i_24728.fasta
+
+##==========================================
+###-----------------run parsnp
+##==========================================
+species=S.thermophilus
+genomess=/archiv/Projects/2019_RMK202_analysis/00_FINAL/03_annotation/coreGenomeSNPtree/GCF_010120595.1_ASM1012059v1_genomic.fna
+
+parsnp -r ${genomess} -v -c  -d /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/ -p 5 -o  /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis/
+
+sed -i 's/.fasta//g' /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis//parsnp.tree
+sed -i 's/GCF_010120595.1_ASM1012059v1_genomic.fna/S. thermophilus type strain ATCC 19258/g' /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis//parsnp.tree
+
+#parsnp -r ${genomess} -v -c  -d /archiv/Projects/2019_RMK202_analysis/00_FINAL/03_annotation/coreGenomeSNPtree/Sterm/genome/ -p 5 -o  /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis_test/
+
+
+##------------Ldel
+
+species=L.delbrueckii
+genomess=/archiv/Projects/2019_RMK202_analysis/00_FINAL/03_annotation/coreGenomeSNPtree/GCF_002278095.1_ASM227809v1_genomic.fna
+
+parsnp -r ${genomess} -v -c  -d /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/01_genomes/ -p 5 -o  /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis/
+
+sed -i 's/.fasta//g' /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis//parsnp.tree
+sed -i 's/GCF_002278095.1_ASM227809v1_genomic.fna/L. delbrueckii type strain ATCC 12315/g' /data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/${species}/analysis//parsnp.tree
+
+```
+
+move local
+
+```{bash}
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/analysis/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/analysis//parsnp.tree /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/analysis//parsnp.tree
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/analysis/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/analysis//parsnp.tree /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/analysis//parsnp.tree
+
+
+```
+
+### SNP tree
+
+
+some good chapters 
+[here](https://yulab-smu.github.io/treedata-book/chapter7.html)
+[here](https://4va.github.io/biodatasci/r-ggtree.html)
+```{r}
+library(tidyverse)
+library(ggtree)
+library(ape)
+library(phytools)
+library(plyr)
+library(tidyverse)
+library(aplot)
+library(patchwork)
+tree <- read.tree("~/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/S.thermophilus/analysis/parsnp.tree_rerooted")
+isolatedStrainsRMK <- read_delim("Desktop/Projects/2020_strainDelineation/01_logs/isolatedStrainsRMK.csv","\t", escape_double = FALSE, trim_ws = TRUE) 
+
+
+isolatedStrainsRMK_sub <- isolatedStrainsRMK %>% select(FAM_number,colony_genotype)
+
+##--------------------------
+# change labels
+##--------------------------
+
+tree$tip.label[35] <- "type Strain"
+
+##--------------------------
+# basic treee
+##--------------------------
+p12 <- ggtree(tree)+ geom_tiplab(align=TRUE, linesize=.5,geom="text")
+# p12
+tree$edge
+
+##--------------------------
+# ordering
+##--------------------------
+
+tmp1 <- ggplot_build(p12)$data[[4]][,c("y","label")]
+properOrder <- tmp1[order(-tmp1$y),] 
+properOrder
+##--------------------------
+# additional information
+##--------------------------
+
+cheeeeese <- str_split_fixed(tree$tip.label,"_",3)[,1]
+cheeeeese[grep("^3",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Sbrinz"
+cheeeeese[grep("^1",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Emmentaler"
+cheeeeese[grep("^2",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Gruyere"
+
+FAMnumber <- c(str_split_fixed(tree$tip.label,"_",3)[,3][1:34],"type Strain")
+starterCulturezzz <- as.character(str_split_fixed(tree$tip.label,"_",3)[,1])
+sourcesss <- c(as.character(str_split_fixed(tree$tip.label,"_",3)[,2])[1:34],"type Strain") %>% revalue(.,c("i"="isolated","d"="dialact"))
+FAMss <- c(as.character(str_split_fixed(tree$tip.label,"_",3)[,3])[1:34],"type Strain")
+trait.three <- data.frame("starter culture"=starterCulturezzz,"cheese"=cheeeeese,"source"=sourcesss)
+rownames(trait.three) <- tree$tip.label 
+
+# trait.three <- data.frame("starter culture"=as.character(str_split_fixed(tree$tip.label,"_",3)[,1]),"cheese"=cheeeeese,"source"=c(as.character(str_split_fixed(tree$tip.label,"_",3)[,2])[1:34],"type Strain"))
+
+
+##--------------------------
+# make combined
+##--------------------------
+
+trait.four <- data.frame("FAM"=FAMss)
+trait.four$long <- tree$tip.label
+trait.four <- merge(trait.four,isolatedStrainsRMK_sub,by.y = "FAM_number",by.x="FAM",all.x = TRUE) %>% column_to_rownames(var="long") %>% select(-FAM)
+# 
+# 
+# trait.four <- data.frame("FAM"=rev(FAMss))
+# trait.four$names <- rev(tree$tip.label)
+# trait.four <- merge(trait.four,isolatedStrainsRMK_sub,by.y = "FAM_number",by.x="FAM",all.x = TRUE) %>% select(-FAM)
+# trait.four$second <- 1
+# trait.four$colony_genotype <- as.character(trait.four$colony_genotype)
+# 
+# trait.four <- trait.four[match(properOrder$label, trait.four$names),]
+
+# ggplot(trait.four, aes(x=second,y=names)) +geom_tile(aes(fill=colony_genotype))
+
+
+
+colors_rmks <-  c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#80e5ff","#008181","#00dcdc")
+# colors_cheese <- c("blue","red","green")
+# colors_soure <- c("pink","green")
+colors_remaining <- c("pink","red","blue","orange","green","white","gray89")
+colorsss <- c(colors_rmks,colors_remaining)
+
+# trait.three = factor(trait.three, levels=c("101","105","115","124","150","190","202","203","280","302","305","Emmentaler","Gruyere","Sbrinz","isolated","dialact","type Strain"))
+
+
+p13 <- gheatmap(p12, trait.three, offset=.12, width=.1, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_manual(values = colorsss)
+p13
+
+
+
+p14 <- gheatmap(p12, trait.four, offset=.12, width=.033, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_viridis_d(option="D", name="discrete\nvalue")
+p14
+
+# p14 <- gheatmap(p13, trait.four, offset=.1, width=.1, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_manual(values = colorsss)
+# p14
+
+ # png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/S_thermophilus_strains.png", width = 3200, height = 2000,res=300)
+svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/S_thermophilus_strains.svg",width=18,height=10)
+
+
+p13+p14
+
+dev.off()
+
+
+##-------------
+##ldel
+##-------------
+
+tree <- read.tree("~/Desktop/Projects/2020_StarterCultureDiversity/08_tree/ParSNP/20200516/L.delbrueckii/analysis/parsnp_rerooted.tree")
+isolatedStrainsRMK <- read_delim("Desktop/Projects/2020_strainDelineation/01_logs/isolatedStrainsRMK.csv","\t", escape_double = FALSE, trim_ws = TRUE) 
+
+
+isolatedStrainsRMK_sub <- isolatedStrainsRMK %>% select(FAM_number,colony_genotype)
+
+##--------------------------
+# change labels
+##--------------------------
+
+tree$tip.label[74] <- "type Strain"
+
+##--------------------------
+# basic treee
+##--------------------------
+p12 <- ggtree(tree)+ geom_tiplab(align=TRUE, linesize=.5,geom="text")
+# p12
+tree$edge
+
+##--------------------------
+# ordering
+##--------------------------
+
+tmp1 <- ggplot_build(p12)$data[[4]][,c("y","label")]
+properOrder <- tmp1[order(-tmp1$y),] 
+properOrder
+##--------------------------
+# additional information
+##--------------------------
+
+cheeeeese <- str_split_fixed(tree$tip.label,"_",3)[,1]
+cheeeeese[grep("^3",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Sbrinz"
+cheeeeese[grep("^1",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Emmentaler"
+cheeeeese[grep("^2",str_split_fixed(tree$tip.label,"_",3)[,1])] <- "Gruyere"
+
+FAMnumber <- c(str_split_fixed(tree$tip.label,"_",3)[,3][1:73],"type Strain")
+starterCulturezzz <- as.character(str_split_fixed(tree$tip.label,"_",3)[,1])
+sourcesss <- c(as.character(str_split_fixed(tree$tip.label,"_",3)[,2])[1:73],"type Strain") %>% revalue(.,c("i"="isolated","d"="dialact"))
+FAMss <- c(as.character(str_split_fixed(tree$tip.label,"_",3)[,3])[1:73],"type Strain")
+trait.three <- data.frame("starter culture"=starterCulturezzz,"cheese"=cheeeeese,"source"=sourcesss)
+rownames(trait.three) <- tree$tip.label 
+
+# trait.three <- data.frame("starter culture"=as.character(str_split_fixed(tree$tip.label,"_",3)[,1]),"cheese"=cheeeeese,"source"=c(as.character(str_split_fixed(tree$tip.label,"_",3)[,2])[1:34],"type Strain"))
+
+
+##--------------------------
+# make combined
+##--------------------------
+
+trait.four <- data.frame("FAM"=FAMss)
+trait.four$long <- tree$tip.label
+trait.four <- merge(trait.four,isolatedStrainsRMK_sub,by.y = "FAM_number",by.x="FAM",all.x = TRUE) %>% column_to_rownames(var="long") %>% select(-FAM)
+# 
+# 
+# trait.four <- data.frame("FAM"=rev(FAMss))
+# trait.four$names <- rev(tree$tip.label)
+# trait.four <- merge(trait.four,isolatedStrainsRMK_sub,by.y = "FAM_number",by.x="FAM",all.x = TRUE) %>% select(-FAM)
+# trait.four$second <- 1
+# trait.four$colony_genotype <- as.character(trait.four$colony_genotype)
+# 
+# trait.four <- trait.four[match(properOrder$label, trait.four$names),]
+
+# ggplot(trait.four, aes(x=second,y=names)) +geom_tile(aes(fill=colony_genotype))
+
+
+
+colors_rmks <-  c("#d45500","#e05a2c","#e46d43","#e77f5b","#eb9172","#eea48a","#009cf0","#34d0fc","#80e5ff","#008181","#00dcdc")
+# colors_cheese <- c("blue","red","green")
+# colors_soure <- c("pink","green")
+colors_remaining <- c("pink","red","blue","orange","green","white","gray89")
+colorsss <- c(colors_rmks,colors_remaining)
+
+# trait.three = factor(trait.three, levels=c("101","105","115","124","150","190","202","203","280","302","305","Emmentaler","Gruyere","Sbrinz","isolated","dialact","type Strain"))
+
+
+p13 <- gheatmap(p12, trait.three, offset=.12, width=.1, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_manual(values = colorsss)
+p13
+
+
+
+p14 <- gheatmap(p12, trait.four, offset=.12, width=.033, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_viridis_d(option="D", name="discrete\nvalue")
+p14
+
+# p14 <- gheatmap(p13, trait.four, offset=.1, width=.1, colnames=TRUE,colnames_position="top", colnames_angle=45, colnames_offset_y = 2, colnames_offset_x = 0.02)+ scale_fill_manual(values = colorsss)
+# p14
+
+ # png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/S_thermophilus_strains.png", width = 3200, height = 2000,res=300)
+svg("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Ldel_strains.svg",width=18,height=10)
+
+
+p13+p14
+
+dev.off()
+```
+
+
+
+#appendix
+#####pcoa
+
+Here, I make a pcoa of the jaccard distance (presence/absence) matrix from the snps.
+Additionally, I want to try the bray curtis distance (count data).
+
+```{r}
+
+
+library(readr)
+snps_analysed_all <- read_csv("Desktop/Projects/2020_strainDelineation/05_SNP_called/snps_analysed_all.csv")
+snps_analysed_all$samplecomplete <- paste(snps_analysed_all$culture,"_",snps_analysed_all$samplesNew,sep="")
+snps_analysed_all_pcoa <- spread(snps_analysed_all, samplecomplete, Snps)  %>%replace(is.na(.), 0) %>% select(c(-species,-samplesNew,-culture)) 
+snps_analysed_all_pcoa_final <- snps_analysed_all_pcoa[!duplicated(snps_analysed_all_pcoa[,1]), ]%>% column_to_rownames(var = "site") %>% t()
+snps_analysed_all_pcoa_final <- snps_analysed_all_pcoa_final[,which(colSums(snps_analysed_all_pcoa_final)!=0)]
+rownames(snps_analysed_all_pcoa_final[which(rowSums(snps_analysed_all_pcoa_final)==0),])
+snps_analysed_all_pcoa_final <- snps_analysed_all_pcoa_final[which(rowSums(snps_analysed_all_pcoa_final)!=0),]
+
+dim(snps_analysed_all_pcoa_final)
+
+##----------------------------
+##pcoa
+
+
+library(ggplot2)
+library(plyr)
+library(tidyverse)
+library(vegan)
+# Here we use Bray-Curtis distance metric
+# dist <- vegdist(snps_analysed_all_pcoa_final,  method = "bray")
+library(ape)
+dist <- vegdist(snps_analysed_all_pcoa_final,  method = "jaccard")
+PCOA <- pcoa(dist)
+barplot(PCOA$values$Relative_eig[1:10])
+pcoa <- ggplot(PCOA_final,aes(x=Axis.1,y=Axis.2,color=sample,fill=sample,shape=cheese))+labs(title = "jaccard distance and PCOA")+geom_point(size=6,alpha=0.5)+theme_classic()
+
+# PCoA is not included in vegan. 
+# We will use the ape package instead
+PCOA <- pcoa(dist)
+barplot(PCOA$values$Relative_eig[1:10])
+
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+# PCOA <- pcoa(dist, correction = "cailliez")
+
+# Plot your results
+biplot.pcoa(PCOA)
+
+biplot.pcoa(PCOA, snps_analysed_all_pcoa_final)
+  
+PCOA_final <- PCOA$vectors %>% data.frame()%>% rownames_to_column("samplecomplete")
+PCOA_final$sample <- str_split_fixed(PCOA_final$samplecomplete, "_", 2)[,1]
+PCOA_final$number <- str_split_fixed(PCOA_final$samplecomplete, "_", 2)[,2]
+
+PCOA_final$cheese <- revalue(PCOA_final$sample,c("101"="emmentaler","105"="emmentaler","115"="emmentaler","124"="emmentaler","150"="emmentaler","190"="emmentaler","202"="gruyere","203"="gruyere","280"="gruyere","302"="sbrinz","305"="sbrinz"))
+
+pcoa <- ggplot(PCOA_final,aes(x=Axis.1,y=Axis.2,color=sample,fill=sample,shape=cheese))+labs(title = "jaccard distance and PCOA")+geom_point(size=6,alpha=0.5)+theme_classic()
+
+
+###-----------------------
+##maybe with bray curtis
+
+
+
+library(vegan)
+# Here we use Bray-Curtis distance metric
+# dist <- vegdist(snps_analysed_all_pcoa_final,  method = "bray")
+dist <- vegdist(snps_analysed_all_pcoa_final,  method = "bray")
+
+# PCoA is not included in vegan. 
+# We will use the ape package instead
+library(ape)
+PCOA <- pcoa(dist)
+barplot(PCOA$values$Relative_eig[1:10])
+
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+# PCOA <- pcoa(dist, correction = "cailliez")
+PCOA$values$Relative_eig
+values$Relative_eig
+
+# Plot your results
+biplot.pcoa(PCOA)
+
+biplot.pcoa(PCOA, snps_analysed_all_pcoa_final)
+  
+PCOA_final <- PCOA$vectors %>% data.frame()%>% rownames_to_column("samplecomplete")
+PCOA_final$sample <- str_split_fixed(PCOA_final$samplecomplete, "_", 2)[,1]
+PCOA_final$number <- str_split_fixed(PCOA_final$samplecomplete, "_", 2)[,2]
+
+PCOA_final$cheese <- revalue(PCOA_final$sample,c("101"="emmentaler","105"="emmentaler","115"="emmentaler","124"="emmentaler","150"="emmentaler","190"="emmentaler","202"="gruyere","203"="gruyere","280"="gruyere","302"="sbrinz","305"="sbrinz"))
+
+ggplot(PCOA_final,aes(x=Axis.1,y=Axis.2,color=sample,fill=sample,shape=cheese))+geom_point(size=6,alpha=0.5)+theme_classic()
+
+```
+
