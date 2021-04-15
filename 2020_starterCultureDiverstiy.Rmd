@@ -8368,8 +8368,12 @@ mv /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0
 
 done
 ll /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/For_NCBI/afterNCBI/${batch}/gff_fna/
+```
 
 
+Next up are the Illumina assemblies
+
+```{bash}
 ##-------------------------------------------------
 ##Illumina genomes
 ##-------------------------------------------------
@@ -10569,6 +10573,1049 @@ library(package = affyLib, character.only = TRUE)
 
 #Phylogeny
 
+
+## large/broad Phylogeny
+Here, I do a phylogeny of the entire Lactobacillus delbrueckii complex and the larger Streptococcus complex and include were they are mainly found. 
+I do this in order to see if closely related species are also used in food fermentation backgrounds. 
+For the lactobacillus part I mainly focus on the [Lactobacillus genus complex describtion ](https://msystems.asm.org/content/4/5/e00264-19) and a [recent comparatative genomics paper](https://aem.asm.org/content/84/17/e00993-18) and the [lifesytles in transition paper](https://academic.oup.com/femsre/article/41/Supp_1/S27/3902999).
+For the Streptococcus I look at...
+
+What I do is:
+
+1. Download 1 genome per species (ideally complete and type strain)
+2. identify on NCBI were it is extracted from (otherwise look in literature.)
+3. do a orthofinder proteome tree
+
+#### Lactobacillus genus complex
+
+```{bash}
+
+#mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log 
+#curl 'ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt' > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log/20201216_NCBI_log.txt
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/
+
+
+rm /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+genus=Lactobacillus
+
+rm  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=iners
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=rodentium
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=hominis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+ 
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=gasseri
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep -v "paragasseri"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep -v "paragasseri"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=johnsonii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=taiwanensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=amylolyticus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+
+###--------------------------
+species=psittaci
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=jensenii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=equicursoris
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=pasteurii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=gigeriorum
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=acetotolerans
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=helsingborgensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=melliventris
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kimbladii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kullabergensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=bombicola
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=panisapium
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=apis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=intestinalis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=hamsteri
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kalixensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|tail -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=helveticus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|tail -1 |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=gallinarum
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|tail -1 |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kefiranofaciens
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=crispatus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=acidophilus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+    
+    
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=ultunensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kitasatonis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=amylovorus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "DSM"|head -1 |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=jakobsenii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=indicus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=delbrueckii
+subsp=lactis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=delbrueckii
+subsp=sunkii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|head -1 |cut -f 20 |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=bulgaricus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|head -1 |cut -f 20 |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+##!!!outgroup
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "Holzapfelia" |grep -i "floricola"|grep "DSM"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "Holzapfelia" |grep -i "floricola"|grep "DSM"|head -1 |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,"out_flor"}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+#mv GCF_000769515.1_ASM76951v1_protein.faa.gz Out_Bacsub.faa.gz
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.faa.gz ${newwsss}.faa.gz
+
+done
+
+gunzip *.faa.gz
+
+
+###-------------------------------------
+##count number of genes
+###-------------------------------------
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA
+
+for newwsss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA/ |sed 's/.faa//g')
+do
+echo "-----------------------"
+
+countsss=$(grep ">" -c  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA/${newwsss}.faa)
+echo -e $newwsss"\t"${countsss}
+
+done
+
+```
+
+orthofinder of the faa for the species tree
+
+```{bash}
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/orthofinder
+
+    orthofinder -f /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA/ \
+      -t 20 \
+      -o /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/orthofinder \
+      -a 20
+
+```
+
+also download the genomes (.fna) to do fastANI analysis
+
+```{bash}
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/
+
+sed -i 's/_protein.faa./_genomic.fna./g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.fna.gz ${newwsss}.fna.gz
+
+done
+ll
+gunzip *.fna.gz
+
+###-------------------------------------
+##fastani
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/
+mkdir -p  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI//{log,analysis}
+
+for genomessss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA |grep ".fna$"|grep -v "lactis")
+do
+#echo -e "/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/"${genomessss} >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes.txt
+echo -e ${genomessss} >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes.txt
+
+done
+
+#echo "/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/delbrueckii_lactis.fna" > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes_lactis.txt
+
+echo "delbrueckii_lactis.fna" > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes_lactis.txt
+###---------------------------
+##fastaANI
+###---------------------------
+#for speciesss in $(echo "L.delbrueckii S.thermophilus")
+
+cd  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/
+fastANI --fragLen 1000 -t 6 --ql /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes_lactis.txt \
+  --rl /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes.txt\
+  -o /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/analysis/analysis.out
+
+sed -i 's/.fna//g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/analysis/analysis.out
+
+```
+
+move local
+```{bash}
+
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/analysis/analysis.out /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/orthofinder/Results_Apr09/Species_Tree/SpeciesTree_rooted_node_labels.txt  /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/
+
+
+```
+also download the nucleotide fasta files (.ffn) for mmseqs and generax
+
+```{bash}
+##===========================================================
+#Ldel
+##===========================================================
+
+sed -i 's/_genomic.fna./_cds_from_genomic.fna./g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+#GCF_000494795.1_ASM49479v1_cds_from_genomic.fna.gz
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FFN
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FFN
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FFN
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.ffn.gz ${newwsss}.fna.gz
+
+done
+ll
+gunzip *.fna.gz
+
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.fna ${newwsss}.fna
+
+done
+
+##===========================================================
+#Sterm
+##===========================================================
+
+
+sed -i 's/_protein.ffn./_cds_from_genomic.fna./g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FFN
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FFN
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FFN
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.fna.gz ${newwsss}.fna.gz
+
+done
+ll
+gunzip *.fna.gz
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.fna ${newwsss}.fna
+
+done
+```
+
+```{r}
+
+library(ape)
+library(ggtree)
+library(tidyverse)
+library(tidytree)
+library(treeio)
+library(TreeTools)
+
+Ldel_broad_tree_raw <- read.nexus("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/SpeciesTree_rooted_node_labels_rerooted.txt", tree.names = NULL, force.multi = FALSE)
+
+
+gtree_01 <- ggtree(Ldel_broad_tree_raw) +
+  geom_tiplab(align = TRUE) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)  #NO ROOT  
+  
+
+##--------------------------------
+##all info at once 
+##--------------------------------
+all_sterm_strain_info <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/broad_phylogeny_Ldel_description.csv", ",", escape_double = FALSE, trim_ws = TRUE) %>% select(label,category)
+
+# all_sterm_strain_info$strain <- gsub("S-thermophilus-","",all_sterm_strain_info$strain)
+
+as_tibble(Ldel_broad_tree_raw)$label %in% all_sterm_strain_info$label
+ all_sterm_strain_info[all_sterm_strain_info$label %in% as_tibble(Ldel_broad_tree_raw)$label ,]
+ all_sterm_strain_info[!all_sterm_strain_info$label %in% as_tibble(Ldel_broad_tree_raw)$label ,]
+
+tmp <- as_tibble(Ldel_broad_tree_raw) %>% filter(!is.na(label))
+
+tmp[!tmp$label %in% all_sterm_strain_info$label,]
+
+
+tree <- full_join(as_tibble(Ldel_broad_tree_raw), all_sterm_strain_info, by='label') %>% as.treedata()
+
+# gtree_01 <- ggtree(tree) +
+#   geom_tiplab(align = TRUE,aes(color=category)) + # tiplabls aligned
+#   geom_rootedge(rootedge = 0) +geom_treescale()  #NO ROOT  
+#   gtree_01
+
+###--------------------------
+#add ANI heatmap
+###--------------------------
+library(RColorBrewer)
+library(ggpubr)
+library(ggsignif)
+analysis_FASTANI <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/analysis.out",  "\t", escape_double = FALSE, col_names = c("genome1","genome2","ANI","comparabedWindows","totalWindows"), trim_ws = TRUE) %>% select(genome2,ANI)%>% remove_rownames()%>% column_to_rownames(., var = "genome2")%>%replace(is.na(.), "Unknown") 
+
+
+
+# p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0, color=colorRampPalette(brewer.pal(6,name="RdYlBu"))(37))#+  scale_fill_manual(values=colors_area)
+# p3
+
+p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0) + scale_fill_viridis_c(option="viridis", name="ANI",na.value = "grey95")
+p3
+
+
+###--------------------------
+#add category
+###--------------------------
+library(RColorBrewer)
+library(ggpubr)
+library(ggsignif)
+# analysis_FASTANI <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/analysis.out",  "\t", escape_double = FALSE, col_names = c("genome1","genome2","ANI","comparabedWindows","totalWindows"), trim_ws = TRUE) %>% select(genome2,ANI)%>% remove_rownames()%>% column_to_rownames(., var = "genome2")%>%replace(is.na(.), "Unknown") 
+
+all_sterm_strain_info_prepped <- all_sterm_strain_info%>% remove_rownames()%>% column_to_rownames(., var = "label")%>%replace(is.na(.), "Unknown") 
+
+# p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0, color=colorRampPalette(brewer.pal(6,name="RdYlBu"))(37))#+  scale_fill_manual(values=colors_area)
+# p3
+
+p4 <- gheatmap(gtree_01, all_sterm_strain_info_prepped, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0)#+ scale_fill_viridis_d()
+p4
+
+###--------------------------
+#correct name
+###--------------------------
+
+tree <- full_join(as_tibble(Ldel_broad_tree_raw), all_sterm_strain_info, by='label') %>% as.treedata()
+
+tree_02 <- as_tibble(Ldel_broad_tree_raw) %>% mutate(label = ifelse(is.na(label), NA, paste0("L. ",label)))%>% as.treedata()
+
+gtree_02 <- ggtree(tree_02) +
+  geom_tiplab(align = TRUE,size=5) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)+geom_treescale()  #NO ROOT  
+  
+gtree_02
+###--------------------------
+#stitch together
+###--------------------------
+library(patchwork)
+
+p3+p4+gtree_02
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/phylogeny_Ldel.pdf",width=20,height=10)
+
+p4+gtree_02+p3
+
+dev.off()
+
+```
+
+
+
+#### Streptococcus
+
+```{bash}
+
+#mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log 
+#curl 'ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt' > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log/20201216_NCBI_log.txt
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/
+
+
+rm /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+genus=Streptococcus
+
+rm  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+###--------------------------
+species=pneumoniae
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|tail -1 |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+###--------------------------
+species=mitis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+###--------------------------
+species=parasanguinis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=sanguinis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "para" -v|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "para" -v|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=suis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=anginosus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=dysgalactiae
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=pyogenes
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=uberis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=gallolyticus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+##--------------------------
+species=equinus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=vestibularis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=thermophilus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=salivarius
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "K12" |awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "K12" |awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=downei
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=criceti
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=mutans
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=macacae
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+###--------------------------
+##!!!outgroup
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -i "lactococcus lactis subsp. lactis"|head -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+     /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -i "lactococcus lactis subsp. lactis"|head -1  |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,"out_flor"}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+#mv GCF_000769515.1_ASM76951v1_protein.faa.gz Out_Bacsub.faa.gz
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.faa.gz ${newwsss}.faa.gz
+
+done
+
+gunzip *.faa.gz
+
+
+###-------------------------------------
+##count number of genes
+###-------------------------------------
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA
+
+for newwsss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA/ |sed 's/.faa//g')
+do
+echo "-----------------------"
+
+countsss=$(grep ">" -c  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA/${newwsss}.faa)
+echo -e $newwsss"\t"${countsss}
+
+done
+
+```
+
+
+orthofinder of the faa for the species tree
+
+```{bash}
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/orthofinder
+
+    orthofinder -f /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA/ \
+      -t 20 \
+      -o /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/orthofinder \
+      -a 20
+
+```
+
+also download the genomes (.fna) to do fastANI analysis
+
+```{bash}
+
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/
+
+sed -i 's/_protein.faa./_genomic.fna./g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+
+cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+
+    wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+###-------------------------------------
+##change name
+###-------------------------------------
+
+for genomessss in $(cut -f 1 /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names| cut -d '/' -f 10)
+do
+newwsss=$(grep "${genomessss}" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names|cut -f 2)
+echo "-----------------------"
+echo $newwsss
+mv ${genomessss}*.fna.gz ${newwsss}.fna.gz
+
+done
+ll
+gunzip *.fna.gz
+
+###-------------------------------------
+##fastani
+###-------------------------------------
+
+rm -r /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/
+mkdir -p  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI//{log,analysis}
+
+for genomessss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA |grep ".fna$"|grep -v "thermophilus")
+do
+#echo -e "/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/"${genomessss} >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes.txt
+echo -e ${genomessss} >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/log/genomes.txt
+
+done
+
+#echo "/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/delbrueckii_lactis.fna" > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/fastANI/log/genomes_lactis.txt
+
+echo "thermophilus.fna" > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/log/genomes_thermophilus.txt
+###---------------------------
+##fastaANI
+###---------------------------
+#for speciesss in $(echo "L.delbrueckii S.thermophilus")
+
+cd  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA/
+fastANI --fragLen 1000 -t 6 --ql /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/log/genomes_thermophilus.txt \
+  --rl /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/log/genomes.txt\
+  -o /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/analysis/analysis.out
+
+sed -i 's/.fna//g' /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/analysis/analysis.out
+
+```
+
+move local
+```{bash}
+
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/fastANI/analysis/analysis.out /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/
+scp  vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/orthofinder/Results_Apr09/Species_Tree/SpeciesTree_rooted_node_labels.txt  /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/
+
+
+```
+
+
+```{r}
+
+library(ape)
+library(ggtree)
+library(tidyverse)
+library(tidytree)
+library(treeio)
+library(TreeTools)
+
+Ldel_broad_tree_raw <- read.nexus("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/SpeciesTree_rooted_node_labels_rerooted.txt", tree.names = NULL, force.multi = FALSE)
+
+
+gtree_01 <- ggtree(Ldel_broad_tree_raw) +
+  geom_tiplab(align = TRUE) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)  #NO ROOT  
+  
+gtree_01
+##--------------------------------
+##all info at once 
+##--------------------------------
+all_sterm_strain_info <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/broad_phylogeny_Sterm_description.csv", ",", escape_double = FALSE, trim_ws = TRUE) %>% select(label,category)
+
+# all_sterm_strain_info$strain <- gsub("S-thermophilus-","",all_sterm_strain_info$strain)
+
+# as_tibble(Ldel_broad_tree_raw)$label %in% all_sterm_strain_info$label
+#  all_sterm_strain_info[all_sterm_strain_info$label %in% as_tibble(Ldel_broad_tree_raw)$label ,]
+#  all_sterm_strain_info[!all_sterm_strain_info$label %in% as_tibble(Ldel_broad_tree_raw)$label ,]
+# 
+# tmp <- as_tibble(Ldel_broad_tree_raw) %>% filter(!is.na(label))
+# 
+# tmp[!tmp$label %in% all_sterm_strain_info$label,]
+# 
+# 
+# tree <- full_join(as_tibble(Ldel_broad_tree_raw), all_sterm_strain_info, by='label') %>% as.treedata()
+
+# gtree_01 <- ggtree(tree) +
+#   geom_tiplab(align = TRUE,aes(color=category)) + # tiplabls aligned
+#   geom_rootedge(rootedge = 0) +geom_treescale()  #NO ROOT  
+#   gtree_01
+
+###--------------------------
+#add ANI heatmap
+###--------------------------
+library(RColorBrewer)
+library(ggpubr)
+library(ggsignif)
+analysis_FASTANI <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/analysis.out",  "\t", escape_double = FALSE, col_names = c("genome1","genome2","ANI","comparabedWindows","totalWindows"), trim_ws = TRUE) %>% select(genome2,ANI)%>% remove_rownames()%>% column_to_rownames(., var = "genome2")%>%replace(is.na(.), "Unknown") 
+
+
+
+# p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0, color=colorRampPalette(brewer.pal(6,name="RdYlBu"))(37))#+  scale_fill_manual(values=colors_area)
+# p3
+
+p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0) + scale_fill_viridis_c(option="viridis", name="ANI",na.value = "grey95")
+p3
+
+
+###--------------------------
+#add category
+###--------------------------
+library(RColorBrewer)
+library(ggpubr)
+library(ggsignif)
+# analysis_FASTANI <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/analysis.out",  "\t", escape_double = FALSE, col_names = c("genome1","genome2","ANI","comparabedWindows","totalWindows"), trim_ws = TRUE) %>% select(genome2,ANI)%>% remove_rownames()%>% column_to_rownames(., var = "genome2")%>%replace(is.na(.), "Unknown") 
+
+all_sterm_strain_info_prepped <- all_sterm_strain_info%>% remove_rownames()%>% column_to_rownames(., var = "label")%>%replace(is.na(.), "Unknown") 
+
+# p3 <- gheatmap(gtree_01, analysis_FASTANI, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0, color=colorRampPalette(brewer.pal(6,name="RdYlBu"))(37))#+  scale_fill_manual(values=colors_area)
+# p3
+
+p4 <- gheatmap(gtree_01, all_sterm_strain_info_prepped, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0)#+ scale_fill_viridis_d()
+p4
+
+###--------------------------
+#correct name
+###--------------------------
+
+tree <- full_join(as_tibble(Ldel_broad_tree_raw), all_sterm_strain_info, by='label') %>% as.treedata()
+
+tree_02 <- as_tibble(Ldel_broad_tree_raw) %>% mutate(label = ifelse(is.na(label), NA, paste0("S. ",label)))%>% as.treedata()
+
+gtree_02 <- ggtree(tree_02) +
+  geom_tiplab(align = TRUE,size=5) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)+geom_treescale()  #NO ROOT  
+  
+gtree_02
+###--------------------------
+#stitch together
+###--------------------------
+library(patchwork)
+
+p3+p4+gtree_02
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/phylogeny_Sterm.pdf",width=15,height=7)
+
+p4+gtree_02+p3
+
+dev.off()
+
+```
+
+
+
+## narrow species Phylogeny
+
 Here, we do the analysis of the strain collection. 
 I am doing the following analysis:
 1. parSNP phylogeny. 
@@ -12024,25 +13071,47 @@ mv GCF_000769515.1_ASM76951v1_protein.faa.gz Out_Bacsub.faa.gz
 
 gunzip Out_Bacsub.faa.gz
 
-###-------------------make collection
+###-------------------make collection of all rmk strains
 cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
-
 cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Ldel/01_all_FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
 
-cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Sterm_references/PROKKA_FAA/Out* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
-cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FAA/Out* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+###-------------------add all species close to Ldel and Sterm from figure 1D/E
+
+cp  /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+cp /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/thermophilus.faa
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/delbrueckii_*
+
+
+###-------------------add all strains close to Ldel and Sterm from figure 1F/G
+
+cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Sterm_references/PROKKA_FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FAA/*.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+
 
 rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/
 #mkdir -p  /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/
 
 
     orthofinder -f /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/ \
-      -t 37 \
+      -t 25 \
       -o /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/  \
-      -a 37
+      -a 25
 
 
 ```
+
+```{bash}
+
+mkdir -p  /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/
+scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Apr12/Species_Tree/SpeciesTree_rooted_node_labels.txt /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/
+#sent back to bigmachine
+scp /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/SpeciesTree_rooted_node_labels_rerooted.txt vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Apr12/Species_Tree/ 
+
+
+```
+
 
 ```{bash}
 ##========================================
@@ -13789,7 +14858,7 @@ mmseqs easy-cluster examples/DB.fasta clusterRes tmp --min-seq-id 0.5 -c 0.8 --c
 #merge all faa
 ###-----------------------------------
 
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.faa
+#rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.faa
 mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/
 cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FAA/*.faa >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.faa
 
@@ -13799,7 +14868,11 @@ cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI
 cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FAA/Out* >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.faa
 
 
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn
+ /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FFN
+
+##-----------ffn
+
+#rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn
 mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/
 cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FFN/*.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn
 
@@ -13812,11 +14885,45 @@ cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI
 
 grep ">" -c /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn 
 
+###⨪---------------------NEW----------------------------------------
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/*.faa > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.faa
+##----ffn
+
+###-------------------make collection of all rmk strains
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FFN/*.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Ldel/01_all_FFN/*.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+
+###-------------------add all species close to Ldel and Sterm from figure 1D/E
+
+cat /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FFN/*.fna >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+cat /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FFN/*.fna >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+
+#rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/thermophilus.faa
+#rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/delbrueckii_*
+
+
+###-------------------add all strains close to Ldel and Sterm from figure 1F/G
+
+cat  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Sterm_references/PROKKA_FFN/*.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+cat  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FFN/*.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+
+
+sed 's/lcl|//g' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes_wo_whitespace.ffn
+
+#grep "L-KLDS1.1011_01743" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+#grep "L-KLDS1.1011_01743" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes_wo_whitespace.ffn
+
+grep "NZ_CP013610.1_cds_WP_060598094.1_1247" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn
+grep "NZ_CP013610.1_cds_WP_060598094.1_1247" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes_wo_whitespace.ffn
+
 ###-----------------------------------
 #cluster
 ###-----------------------------------
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/tmp/
 
-mmseqs easy-cluster  --threads 10 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/results_NUC /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/tmp/
+mmseqs easy-cluster  --threads 10 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes.ffn /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/results_NUC /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/tmp/
 
 ###-----------------------------------
 #extract all cluster sequeneces
@@ -13835,7 +14942,7 @@ rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseq
 for geneessss in $(awk -F "\t" -v clusterzzz="$clustersss" '{if($1==clusterzzz)print $2}' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/results_NUC_cluster.tsv)
 do
 echo $geneessss
-samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/allGenes.ffn ${geneessss} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/HomologyGroups_nuc/${clustersss}_homology.ffn
+samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/20210412_allGenes_wo_whitespace.ffn ${geneessss} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/MMseqs/HomologyGroups_nuc/${clustersss}_homology.ffn
 
 done
 done #clustersss
