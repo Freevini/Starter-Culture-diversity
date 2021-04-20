@@ -13,6 +13,150 @@ knitr::opts_chunk$set(message=FALSE, echo=FALSE, eval=FALSE)
 ```
 
 #Wetlab
+### hydroplate
+
+With the hydroplate I want to see if any of the Evolution experiment strains grows better/faster. 
+I am only focusing on the Streptococcus thermophilus strains that where used in the evolution experiment:
+First I create a list to see which strains come from which lineage
+
+```{r }
+library(tidyverse)
+genomeAssemblyStats <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/statsFinal/genomeAssemblyStats.csv",   col_types = cols(lineage = col_character(),starterCulture = col_character())) %>% select(strain,starterCulture,lineage)
+Poppunk_out <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GALs_analysis/Gals_analysis/Poppunk_out.all","\t", escape_double = FALSE, col_names = c("genome","group"), trim_ws = TRUE)%>% mutate(group=as.character(group))
+
+
+Poppunk_out$group <- revalue(Poppunk_out$group,c("1"="8","2"="6","3"="4","4"="5","5"="1","6" ="4", "7"="7", "8"="11", "9"="10","10"="2","11"="12", "12"="9")) 
+
+
+Poppunk_out$genome_02 <- gsub("S","",Poppunk_out$genome)
+
+experiment_genomes <- c("24724","24726","24728","24730","24734","24736","24739","24742","24745","24748","24750")
+
+Poppunk_out_experiment <- Poppunk_out %>% filter(genome_02 %in% experiment_genomes)
+
+genomeAssemblyStats$genome <- gsub("S","",genomeAssemblyStats$strain)
+genomeAssemblyStats_experiment <- genomeAssemblyStats %>% filter(genome %in% experiment_genomes)
+
+genomeAssemblyStats_experiment$genome
+```
+
+for the streptococcus strain I only need to look at the plate 1 and plate 2 samples. 
+
+```{r}
+
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+library(ggmap)
+library(ggsignif)
+library(ggpubr)
+#plate1
+##leave r02 out... it is very strange as it first goes up then donw
+##leave r01 out... first plate did not work
+
+# replicate_01 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200701_hydroplates_PLATTE1/200701_plate_01_rmk_r01_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+# replicate_02 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200703_hydroplates_PLATTE1_r2/200703_plate_01_rmk_r02_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+replicate_03 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200706_hydroplates_PLATTE1_r3/200706_plate_01_rmk_r03_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+replicate_04 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200805_hydroplate_plate1_r04/200805_plate_01_rmk_r04_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+replicate_05 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200807_hydroplate_plate1_r05/200807_plate_01_rmk_r05_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+
+#plate2
+PLATE02_replicate_01 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200709_hydroplates_plate2_r01/200709_plate02_r01.txt_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+PLATE02_replicate_02 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200727_hydroplates_plate2_r03/200727_plate02_r02.txt_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+
+#plate3
+PLATE03_replicate_01 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200714_hydroplates_plate3_r01/200714_plate03_r01.txt_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+PLATE03_replicate_02 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200714_hydroplates_plate3_r02/200714_plate03_r02_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+# PLATE03_replicate_03 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200717_hydroplates_plate3_r03/200717_plate03_r03_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+
+#plate4
+PLATE04_replicate_01 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200724_hydroplates_plate4_r01/200724_plate04_r01_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+PLATE04_replicate_02 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200727_hydroplates_plate4_r02/200725_plate04_r02_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+# PLATE04_replicate_03 <- read_delim("~/Desktop/Projects/plateReader/rawRuns/20200813_hydroplates_plate4_r03/200813_plate04_r03.txt_model.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
+
+# all_samples <- rbind(replicate_01,replicate_02,replicate_03)
+# all_samples <- rbind(replicate_02,replicate_03,PLATE02_replicate_01,PLATE02_replicate_02,PLATE03_replicate_01,PLATE03_replicate_02,PLATE03_replicate_03,PLATE04_replicate_01,PLATE04_replicate_02)
+# all_samples <- rbind(replicate_03,replicate_04,replicate_05,PLATE02_replicate_01,PLATE02_replicate_02,PLATE03_replicate_01,PLATE03_replicate_02,PLATE03_replicate_03,PLATE04_replicate_01,PLATE04_replicate_02,PLATE04_replicate_03)
+
+all_samples <- rbind(replicate_03,replicate_04,replicate_05,PLATE02_replicate_01,PLATE02_replicate_02,PLATE03_replicate_01,PLATE03_replicate_02,PLATE04_replicate_01,PLATE04_replicate_02)
+
+all_samples$lagPhase <- all_samples$h0/all_samples$mumax
+
+##=================================
+###only look at the streptococci. 
+##=================================
+
+all_samples_sub <- all_samples %>% filter(no_growth=="isolate")
+all_samples_sub$newNames <- gsub("none\\+","",all_samples_sub$name)
+all_samples_sub_isolates <- all_samples_sub %>% filter(newNames %in% genomeAssemblyStats_experiment$genome)
+
+all_samples_sub_isolates_final <- merge(all_samples_sub_isolates,genomeAssemblyStats_experiment,by.x="newNames",by.y="genome")
+table(all_samples_sub_isolates_final$newNames) 
+table(all_samples_sub_isolates_final$lineage) 
+table(genomeAssemblyStats_experiment$lineage)
+
+
+samplesss <- all_samples %>% dplyr::select("name","no_growth") %>% unique()
+
+mumax_plot <- ggplot(all_samples_sub_isolates_final,aes(x=lineage,y=mumax,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="maximum pH decrease")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))+facet_wrap(~no_growth,scales = "free_x",nrow=1)#+facet_wrap(~plate,nrow=4)
+mumax_plot
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=y0))+geom_boxplot()+theme_classic()+labs(x="","intitial pH")
+k0plot <- ggplot(all_samples_sub_isolates_final,aes(x=lineage,y=K,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="lowest pH")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=h0))+geom_boxplot()+theme_classic()
+k0plot
+
+lagPhaseplot <- ggplot(all_samples_sub_isolates_final,aes(x=lineage,y=lagPhase,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="lagPhase")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=h0))+geom_boxplot()+theme_classic()
+lagPhaseplot
+
+mumax_plot+k0plot+lagPhaseplot+ plot_layout(ncol=1)
+
+
+##=================================
+###look at pairwise growth samples because Ldel might help lineage 4 disproportionally well. 
+##=================================
+
+all_samples_sub <- all_samples %>% filter(no_growth!="isolate")
+all_samples_sub$newNames <- gsub("none\\+","",all_samples_sub$name)
+all_samples_sub$newNames <-  str_split_fixed(all_samples_sub$name, fixed("+"), 2)[,2]
+all_samples_sub_pairwise <- all_samples_sub %>% filter(newNames %in% genomeAssemblyStats_experiment$genome)
+
+
+
+all_samples_sub_pairwise_final <- merge(all_samples_sub_pairwise,genomeAssemblyStats_experiment,by.x="newNames",by.y="genome")
+table(all_samples_sub_pairwise_final$newNames) 
+table(all_samples_sub_pairwise_final$lineage) 
+table(genomeAssemblyStats_experiment$lineage)
+
+
+samplesss <- all_samples %>% dplyr::select("name","no_growth") %>% unique()
+
+mumax_plot_pair <- ggplot(all_samples_sub_pairwise_final,aes(x=lineage,y=mumax,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="maximum pH decrease")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))+facet_wrap(~no_growth,scales = "free_x",nrow=1)#+facet_wrap(~plate,nrow=4)
+mumax_plot_pair
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=y0))+geom_boxplot()+theme_classic()+labs(x="","intitial pH")
+k0plot_pair <- ggplot(all_samples_sub_pairwise_final,aes(x=lineage,y=K,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="lowest pH")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=h0))+geom_boxplot()+theme_classic()
+k0plot_pair
+
+lagPhaseplot_pair <- ggplot(all_samples_sub_pairwise_final,aes(x=lineage,y=lagPhase,fill=newNames))+geom_boxplot()+theme_classic()+labs(x="",y="lagPhase")+theme(axis.text.x = element_text(angle = 75, hjust = 1,size=7))
+# ggplot(many_baranyi2_res_preped,aes(x=name,y=h0))+geom_boxplot()+theme_classic()
+lagPhaseplot_pair
+
+mumax_plot_pair+k0plot_pair+lagPhaseplot_pair+ plot_layout(ncol=1)
+
+
+##=================================
+###together
+##=================================
+
+mumax_plot_pair+mumax_plot+k0plot_pair+k0plot+lagPhaseplot_pair+lagPhaseplot+  plot_layout(ncol=2)
+```
+
+## Survival freez drying
+
+Here, I want to look at the survival rate after freeze drying. 
+
 #### colony pick genotypes
 
 ```{r}
@@ -9394,6 +9538,24 @@ wc -l /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation
 
     wget -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/download_${shortnamess}.txt
 
+###-----------------------
+#Portiera
+###-----------------------
+species=$(echo "Portiera")
+shortnamess=Port
+
+rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${shortnamess}
+mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${shortnamess}
+cd /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${shortnamess}
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${species}"|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >    \
+    /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/download_${shortnamess}.txt
+    #pecies_short=Sterm_references
+
+wc -l /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/download_${shortnamess}.txt
+
+    wget -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/download_${shortnamess}.txt
 
 
 
@@ -9568,9 +9730,10 @@ do
 
 genezzz=$(zcat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${species}/${genomesss}|grep "Genes (coding)" |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
 peudosss=$(zcat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${species}/${genomesss}|grep "Pseudo Genes (total)"  |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
+transpos=$(zgrep -i "transpos"  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/gbk/${species}/${genomesss} |grep "product=" -c)
 
 
-echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss}  >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
+echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss}"\t"${transpos} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
 done #genomesss
 
 done
@@ -9591,8 +9754,10 @@ do
 genezzz=$(grep "Genes (coding)" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/${genomesss}.gbk |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
 peudosss=$(grep "Pseudo Genes (total)" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/${genomesss}.gbk |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
 
+transpos=$(grep "transposase" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/${genomesss}.gbk |grep "product=" -c)
 
-echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
+
+echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss}"\t"${transpos} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
 done #genomesss
 
 done
@@ -10000,8 +10165,9 @@ cluster_ps_final_cleaned_count_wide
 total_genomes <- data.frame()
 for (clusterzzz in unique(cluster_ps_final_cleaned$cluster)) {
   print(clusterzzz)
-  tmp <- cluster_ps_final_cleaned %>% filter(cluster==clusterzzz) %>% pull(.,genome_name) %>% droplevels() %>% as.character()
-  
+  # tmp <- cluster_ps_final_cleaned %>% filter(cluster==clusterzzz) %>% pull(.,genome_name) %>% droplevels() %>% as.character()
+    tmp <- cluster_ps_final_cleaned %>% filter(cluster==clusterzzz) %>% pull(.,genome_name) %>% as.character()
+
   nodess <- getMRCA(tree_phylo, tmp)
 # nodess
 numbers <- Descendants(tree_phylo, nodess, type = "tips") %>% unlist()
@@ -10043,8 +10209,994 @@ pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenization.
 pseudogenization_plot
 
 dev.off()
+##------------------------------
+#box plot
+##------------------------------
+cluster_ps_final_cleaned_count_wide_final_smaller <- cluster_ps_final_cleaned_count_wide_final %>% select(cluster,pseudogenes,complete,lost)%>% gather(.,grouping,percents,c(pseudogenes,complete,lost))
+ cluster_ps_final_cleaned_count_wide_final_smaller$grouping = factor(cluster_ps_final_cleaned_count_wide_final_smaller$grouping, levels=c("lost","pseudogenes","complete"))
+
+pseudogenization_boxplot <- ggplot(data=cluster_ps_final_cleaned_count_wide_final_smaller,aes(x=grouping,y=percents,group=grouping,fill=grouping)) +geom_violin()+theme_classic()
+pseudogenization_boxplot
+
+
+
+
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenization_violin.pdf",width=11,height=9)
+
+pseudogenization_boxplot
+
+dev.off()
+```
+
+###extension pseudo genes
+extenstion with new
+
+```{bash}
+##===============================
+##Lactobacillus
+##===============================
+#mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log 
+#curl 'ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt' > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log/20201216_NCBI_log.txt
+
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/
+
+
+rm /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+genus=Lactobacillus
+
+rm  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=iners
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=rodentium
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=hominis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+ 
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=gasseri
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep -v "paragasseri"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep -v "paragasseri"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=johnsonii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}'|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=taiwanensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=amylolyticus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+
+###--------------------------
+species=psittaci
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=jensenii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=equicursoris
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=pasteurii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=gigeriorum
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=acetotolerans
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=helsingborgensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=melliventris
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kimbladii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kullabergensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=bombicola
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=panisapium
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=apis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=intestinalis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=hamsteri
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kalixensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=helveticus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=gallinarum
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kefiranofaciens
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=crispatus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=acidophilus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+    
+    
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=ultunensis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20  |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=kitasatonis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=amylovorus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}" |cut -f 20   |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=jakobsenii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+     
+     
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=indicus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=delbrueckii
+subsp=lactis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20  |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+###--------------------------
+species=delbrueckii
+subsp=sunkii
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}"|cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###--------------------------
+species=delbrueckii
+subsp=bulgaricus
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "${subsp}" |cut -f 20 |awk -v namezzin="$species" -v subss="$subsp" '{OFS="\t"}{print $1,namezzin"_"subss}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF
+
+cd /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF
+
+    wget -i /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
+   
+#mv GCF_000769515.1_ASM76951v1_genomic.gbff.gz Out_Bacsub.faa.gz
+
+###========================================================
+#extract counts
+###========================================================
+
+#rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
+rm /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/pseudogeness_count_new.txt
+
+
+for genomesss in $(ls /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF |grep ".gz$" )
+do
+genomesss_short=$(echo ${genomesss} |sed 's/_genomic.gbff.gz//g' )
+species=$(grep "${genomesss_short}" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names |cut -f 2)
+genezzz=$(zcat /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss}|grep "Genes (coding)" |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
+peudosss=$(zcat /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss}|grep "Pseudo Genes (total)"  |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
+transpos=$(zgrep "transposase" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss} |grep "product=" -c)
+
+
+echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss}"\t"${transpos}  >>  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/pseudogeness_count_new.txt
+done #genomesss
+
+
+#cut -f 2 /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names |sort|uniq| awk -F "\t" '{OFS="="}{print "\"Lactobacillus\"","\""$1"\""}'
+
+cut -f 2 /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names |sort|uniq| awk -F "\t" '{OFS="="}{print "\""$1"\"","\"Lactobacillus\""}'
 
 ```
+
+###Strepto
+
+```{bash}
+##-----------------------------
+##Streptococcus
+##-----------------------------
+
+#mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log 
+#curl 'ftp://ftp.ncbi.nlm.nih.gov/genomes/refseq/bacteria/assembly_summary.txt' > /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/genomes/NCBI_Refs/log/20201216_NCBI_log.txt
+
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log
+
+
+rm /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+genus=Streptococcus
+
+rm  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+###--------------------------
+species=pneumoniae
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' |head -100 >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} {if ($12=="Complete Genome" ||$12=="Chromosome" ) print $0}' |cut -f 20 |awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' |head -100 >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+###--------------------------
+species=mitis
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+###--------------------------
+species=parasanguinis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=sanguinis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "para" -v|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "para" -v|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=suis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=anginosus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+##--------------------------
+species=dysgalactiae
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=pyogenes
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=uberis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=gallolyticus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+##--------------------------
+species=equinus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=vestibularis
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=thermophilus
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=salivarius
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "K12" |awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|grep "K12" |awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=downei
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=criceti
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=mutans
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+##--------------------------
+species=macacae
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_genomic.gbff.gz|' >>    \
+     /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}' |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+
+
+###-------------------------------------
+##download
+###-------------------------------------
+
+rm -r /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/genomes/GBF
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF
+
+cd /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF
+
+    wget -i /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
+
+#mv GCF_000769515.1_ASM76951v1_genomic.gbff.gz Out_Bacsub.faa.gz
+
+###========================================================
+#extract counts
+###========================================================
+
+#rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt
+#rm /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/pseudogeness_count_new.txt
+
+
+for genomesss in $(ls /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF |grep ".gz$" )
+do
+genomesss_short=$(echo ${genomesss} |sed 's/_genomic.gbff.gz//g' )
+species=$(grep "${genomesss_short}" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names |cut -f 2)
+genezzz=$(zcat /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF/${genomesss}|grep "Genes (coding)" |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
+peudosss=$(zcat /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF/${genomesss}|grep "Pseudo Genes (total)"  |cut -d ':' -f 3|sed 's/ //g'|sed 's/,//g'|head -1)
+transpos=$(zgrep "transposase" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/GBF/${genomesss} |grep "product=" -c)
+
+
+echo -e ${species}"\t"${genomesss}"\t"${genezzz}"\t"${peudosss}"\t"${transpos}  >>  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/pseudogeness_count_new.txt
+done #genomesss
+
+###--------------------------
+#rename
+cut -f 2 /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names |sort|uniq| awk -F "\t" '{OFS="="}{print "\""$1"\"","\"Streptococcus\""}'
+
+
+```
+
+transfer local
+
+```{bash}
+
+mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/
+scp  vincent@130.223.51.116:/work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/pseudogeness_count_new.txt /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count_new.txt
+
+cat /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt \
+/home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count_new.txt > \
+/home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count_together.txt
+```
+#### together
+do analysis 
+
+```{r}
+library(readr)
+library(tidyverse)
+pseudogeness_count <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count_together.txt",  "\t", escape_double = FALSE, col_names = c("species","genome","genes_coding","pseudogenes","tranposons"), trim_ws = TRUE) %>% filter(pseudogenes<1000) %>% filter(genes_coding<4000)%>% mutate(pseudogenes_percent = 100*(pseudogenes/genes_coding)) %>% mutate(tranposons_percent = 100*(tranposons/genes_coding))%>% filter(species!="Wigg")%>% filter(species!="Scap")%>% filter(species!="Lplan")
+
+###--------------------
+##filter
+# remove species with less then 5 genomes
+###--------------------
+
+table(pseudogeness_count$species)[table(pseudogeness_count$species)>5] 
+table(pseudogeness_count$species)[table(pseudogeness_count$species)<4]
+
+keeps <- table(pseudogeness_count$species)[table(pseudogeness_count$species)>3] %>% names()
+
+pseudogeness_count <- pseudogeness_count %>% filter(species %in% keeps)
+###--------------------
+##point plot
+###--------------------
+plotpoints <- ggplot(pseudogeness_count,aes(x=genes_coding,y=pseudogenes_percent,fill=species,color=species))+geom_point()+labs(x="Gene number",y="Pseudogenes [%]")+theme_classic()+theme(legend.title = element_blank())
+plotpoints
+  
+  library(plotly)
+ggp <- ggplotly(plotpoints)
+ ggp
+# pseudogeness_count %>% group_by(species)%>%ize(meanPseudo=mean(pseudogeness_count),meangenes=mean(genes_coding),stdevPseudo=sd(pseudogeness_count),stdevgenes=stderr(genes_coding))
+# pseudogeness_count %>% group_by(species) %>% summarise(meanPseudo=mean(pseudogeness_count))
+
+ 
+ 
+pseudogeness_count$species <- plyr::revalue(pseudogeness_count$species,c("delbrueckii_lactis"="L. delbrueckii subsp. lactis",
+ "Ldel"="L. delbrueckii subsp. lactis",
+ "thermophilus"="S. thermophilus",
+ "Sterm"="S. thermophilus",
+ "Ssuis"="suis",
+ "Lequi"="equicursoris",
+ "Svest"="vestibularis"))
+ 
+pseudogeness_sumary <- pseudogeness_count %>% group_by(species) %>%  dplyr::summarize(meanPseudo=100*(mean(pseudogenes)/mean(genes_coding)),meangenes=mean(genes_coding),stdevPseudo=100*(sd(pseudogenes)/mean(genes_coding)),stdevgene=sd(genes_coding),meantransp=100*(mean(tranposons)/mean(genes_coding)),stdevtransp=100*(sd(tranposons)/mean(genes_coding)),meanboth=100*(mean(pseudogenes+tranposons)/mean(genes_coding)),stdevboth=100*(sd(pseudogenes+tranposons)/mean(genes_coding)),counts=n())
+
+
+
+ # dplyr::summarize(mean = mean(NumGenesLineage),sd=sd(NumGenesLineage))
+
+##-----
+#chnage names
+##-----
+  pseudogeness_sumary$species_new <- pseudogeness_sumary$species
+
+ 
+  # pseudogeness_sumary$species_new <- plyr::revalue(pseudogeness_sumary$species,c("Buch"="Buchnera spp.","Sglos"="S. glossinidius","Ldel"="L. delbrueckii","Sterm"="S. thermophilus","Mleprae"="M. leprae","Rick"="Rickettsia spp.","Lplan"="L. plantarum","Ssuis"="S. suis","Lequi"="L. equicursoris","Svest"="S. vestibularis","Wol"="Wolbachia spp."))
+#,"Wigg"="Wigglesworthia"
+table(pseudogeness_sumary$species)
+table(pseudogeness_sumary$species_new)  
+  
+
+
+ # pseudogeness_sumary$species_new  = factor(pseudogeness_sumary$species_new , levels=c("L. delbrueckii","S. thermophilus","L. plantarum","L. equicursoris","S. suis","S. vestibularis","M. leprae","Rickettsia spp.","Buchnera spp.","S. glossinidius","Wolbachia spp."))
+
+ 
+# colorsss <- c("#fdc2b5ff","#007fa6ff","#ebbc51ff","#ebbc51ff","#9fcfffff","#9fcfffff","#51eb85ff","#51eb85ff","#d58656ff","#d58656ff","#d58656ff") 
+# colorsss <- c("#fdc2b5ff","#007fa6ff","grey77","grey77","grey77","grey77","#51eb85ff","#51eb85ff","#d58656ff","#d58656ff","#d58656ff")
+
+##-----
+#plot size vs. pseudogenes
+##-----
+plotpoints <-ggplot( pseudogeness_sumary, aes(x = meangenes, y = meanPseudo, xmin = meangenes-stdevgene, xmax = meangenes+stdevgene,ymin=meanPseudo-stdevPseudo,ymax=meanPseudo+stdevPseudo,fill=species_new,color=species_new)) +
+  geom_point(size=2) +
+  geom_errorbarh(alpha=.5)+
+  geom_errorbar(alpha=.5)+
+    labs(x="Gene number",y="Pseudogenes [%]")+theme_classic()+theme(legend.title = element_blank())+
+  #geom_hline(yintercept =7.5, linetype="dotted")+geom_segment(aes(x = 1500, y = -1, xend = 1500, yend = 7.5), linetype = "dotted")+
+  # scale_color_manual(values = colorsss)+scale_fill_manual(values = colorsss)+
+  annotate("text", x = 800, y = 6, label = "endosymbionts",col="#d58656ff")+
+  annotate("text", x = 800, y = 25, label = "transition",col="#51eb85ff")+
+  annotate("text", x = 2000, y = 1, label = "free living",col="grey77")
+
+#+lims(x=c(250,4100),y=c(-1.5,40))
+plotpoints
+
+  library(plotly)
+ggp <- ggplotly(plotpoints)
+ ggp
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenes.pdf",width=6,height=4)
+
+plotpoints
+
+dev.off()
+##-----
+#plot transposase vs. pseudogenes
+##-----
+plotpoints_withtranps <- ggplot(pseudogeness_sumary, aes(x = meantransp, y = meanPseudo, xmin = meantransp-stdevtransp, xmax = meantransp+stdevtransp,ymin=meanPseudo-stdevPseudo,ymax=meanPseudo+stdevPseudo,fill=species_new,color=species_new)) +
+  geom_point(size=2) +
+  geom_errorbarh(alpha=.5)+
+  geom_errorbar(alpha=.5)+
+    labs(x="transposase",y="Pseudogenes [%]")+theme_classic()+theme(legend.title = element_blank())
+  #geom_hline(yintercept =7.5, linetype="dotted")+geom_segment(aes(x = 1500, y = -1, xend = 1500, yend = 7.5), linetype = "dotted")+
+  # scale_color_manual(values = colorsss)+scale_fill_manual(values = colorsss)+
+  # annotate("text", x = 800, y = 6, label = "endosymbionts",col="#d58656ff")+
+  # annotate("text", x = 800, y = 25, label = "transition",col="#51eb85ff")+
+  # annotate("text", x = 2000, y = 1, label = "free living",col="grey77")
+
+#+lims(x=c(250,4100),y=c(-1.5,40))
+plotpoints_withtranps
+
+  library(plotly)
+ggp <- ggplotly(plotpoints_withtranps)
+ ggp
+##-----
+#plot transposase +pseudogenes vs. genome size
+##-----
+ 
+ 
+plotpoints_both <- ggplot( pseudogeness_sumary, aes(x = meangenes, y = meanboth, xmin = meangenes-stdevgene, xmax = meangenes+stdevgene,ymin=meanboth-stdevboth,ymax=meanboth+stdevboth,fill=species_new,color=species_new,text=paste("counts=",counts))) +
+  geom_point(size=2) +
+  geom_errorbarh(alpha=.2)+
+  geom_errorbar(alpha=.2)+
+    labs(x="Gene number",y="Pseudogenes+transposons [%]")+theme_classic()+theme(legend.title = element_blank())
+  #geom_hline(yintercept =7.5, linetype="dotted")+geom_segment(aes(x = 1500, y = -1, xend = 1500, yend = 7.5), linetype = "dotted")+
+  # scale_color_manual(values = colorsss)+scale_fill_manual(values = colorsss)+
+  # annotate("text", x = 800, y = 6, label = "endosymbionts",col="#d58656ff")+
+  # annotate("text", x = 800, y = 25, label = "transition",col="#51eb85ff")+
+  # annotate("text", x = 2000, y = 1, label = "free living",col="grey77")
+
+#+lims(x=c(250,4100),y=c(-1.5,40))
+plotpoints_both
+
+  library(plotly)
+ggp <- ggplotly(plotpoints_both)
+ ggp
+
+
+# plotpoints_wo <- plotpoints+theme(legend.position = "none")
+# plotpoints_wo
+# plotpoints+stat_ellipse(data=pseudogeness_count,aes(x=genes_coding,y=pseudogenes_percent,fill=species,color=species,group=species),type = "euclid", level = 3) 
+
+  
+ ##----------------------------------------
+ ##change coloring
+ ##----------------------------------------
+ 
+ dput(unique(pseudogeness_sumary$species))
+ 
+ pseudogeness_sumary$species_new_02 <- plyr::revalue(pseudogeness_sumary$species,c("anginosus"="Streptococcus",
+"criceti"="Streptococcus",
+"downei"="Streptococcus",
+"dysgalactiae"="Streptococcus",
+"equinus"="Streptococcus",
+"gallolyticus"="Streptococcus",
+"macacae"="Streptococcus",
+"mitis"="Streptococcus",
+"mutans"="Streptococcus",
+"parasanguinis"="Streptococcus",
+"pneumoniae"="Streptococcus",
+"pyogenes"="Streptococcus",
+"salivarius"="Streptococcus",
+"sanguinis"="Streptococcus",
+"suis"="Streptococcus",
+# "thermophilus"="Streptococcus",
+"uberis"="Streptococcus",
+"vestibularis"="Streptococcus",
+"acetotolerans"="Lactobacillus",
+"acidophilus"="Lactobacillus",
+"amylolyticus"="Lactobacillus",
+"amylovorus"="Lactobacillus",
+"apis"="Lactobacillus",
+"bombicola"="Lactobacillus",
+"_bulgaricus"="Lactobacillus",
+"crispatus"="Lactobacillus",
+# "delbrueckii_indicus"="Lactobacillus",
+# "delbrueckii_lactis"="Lactobacillus",
+# "delbrueckii_sunkii"="Lactobacillus",
+"equicursoris"="Lactobacillus",
+"gallinarum"="Lactobacillus",
+"gasseri"="Lactobacillus",
+"gigeriorum"="Lactobacillus",
+"hamsteri"="Lactobacillus",
+"helsingborgensis"="Lactobacillus",
+"hominis"="Lactobacillus",
+"iners"="Lactobacillus",
+"intestinalis"="Lactobacillus",
+"jensenii"="Lactobacillus",
+"johnsonii"="Lactobacillus",
+"kalixensis"="Lactobacillus",
+"kefiranofaciens"="Lactobacillus",
+"kimbladii"="Lactobacillus",
+"kitasatonis"="Lactobacillus",
+"kullabergensis"="Lactobacillus",
+"melliventris"="Lactobacillus",
+"panisapium"="Lactobacillus",
+"pasteurii"="Lactobacillus",
+"psittaci"="Lactobacillus",
+"rodentium"="Lactobacillus",
+"taiwanensis"="Lactobacillus",
+"ultunensis"="Lactobacillus",
+ #  "Buch"="Buchnera spp.",
+ # "Sglos"="S. glossinidius",
+ # "Mleprae"="M. leprae",
+ # "Rick"="Rickettsia spp.",
+ # "Wol"="Wolbachia spp."
+ "Buch"="Endosymbiont",
+ # "Sglos"="S. glossinidius",
+ # "Mleprae"="M. leprae",
+ "Rick"="Transition",
+ "Wol"="Transition",
+"Port"="Endosymbiont"))
+  table(pseudogeness_sumary$species_new_02)
+ pseudogeness_sumary$species_new_02 = factor(pseudogeness_sumary$species_new_02, levels=c("Endosymbiont",  "Transition", "S. thermophilus", "Streptococcus" , "L. delbrueckii subsp. lactis","Lactobacillus"))
+
+ colorsss <- c("red","orange","#007fa6ff","#0080a332","#fdc2b5ff","#ffc3b433")
+ # colorsss <- c("#fdc2b5ff","#")
+
+  
+plotpoints_both_colored <- ggplot( pseudogeness_sumary, aes(x = meangenes, y = meanboth, xmin = meangenes-stdevgene, xmax = meangenes+stdevgene,ymin=meanboth-stdevboth,ymax=meanboth+stdevboth,fill=species_new_02,color=species_new_02,text=paste("counts=",counts,"\nspecies=",species_new))) +
+  geom_point(size=3) +
+  geom_errorbarh(alpha=.2)+
+  geom_errorbar(alpha=.2)+
+    labs(x="Gene number",y="Pseudogenes+transposons [%]")+theme_classic()+theme(legend.title = element_blank())+
+  geom_hline(yintercept =15, linetype="dotted")+geom_segment(aes(x = 1000, y = 1, xend = 1000, yend = 15), linetype = "dotted")+
+  scale_color_manual(values = colorsss)+scale_fill_manual(values = colorsss)+
+  annotate("text", x = 800, y = 6, label = "endosymbionts",col="red")+
+  annotate("text", x = 800, y = 25, label = "transition",col="orange")+
+  annotate("text", x = 2000, y = 1, label = "free living",col="grey77")
+
+#+lims(x=c(250,4100),y=c(-1.5,40))
+# plotpoints_both_colored
+
+  library(plotly)
+ggp <- ggplotly(plotpoints_both_colored)
+ ggp
+
+ 
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenes_colored.pdf",width=6,height=4)
+
+plotpoints_both_colored
+
+dev.off()
+
+## only size--------------------------
+
+plotpoints <-ggplot( pseudogeness_sumary, aes(x = meangenes, y = meanPseudo, xmin = meangenes-stdevgene, xmax = meangenes+stdevgene,ymin=meanPseudo-stdevPseudo,ymax=meanPseudo+stdevPseudo,fill=species_new_02,color=species_new_02,text=paste("counts=",counts,"\nspecies=",species_new))) +
+  geom_point(aes(size=meantransp)) +
+  geom_errorbarh(alpha=.5)+
+  geom_errorbar(alpha=.5)+
+    labs(x="Gene number",y="Pseudogenes [%]")+theme_classic()+theme(legend.title = element_blank())+
+  geom_hline(yintercept =10, linetype="dotted")+geom_segment(aes(x = 1000, y = -1, xend = 1000, yend = 10), linetype = "dotted")+
+  scale_color_manual(values = colorsss)+scale_fill_manual(values = colorsss)+
+  annotate("text", x = 800, y = 6, label = "endosymbionts",col="red")+
+  annotate("text", x = 800, y = 25, label = "transition",col="orange")+
+  annotate("text", x = 2000, y = 1, label = "free living",col="grey77")
+
+#+lims(x=c(250,4100),y=c(-1.5,40))
+plotpoints
+
+  library(plotly)
+ggp <- ggplotly(plotpoints)
+ ggp
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenes_new.pdf",width=6,height=4)
+
+plotpoints
+
+dev.off()
+ 
+ ##------------------------
+ ##eclipse
+ #to do this we include all std points and mean points into one datafram
+ ##------------------------
+ 
+#  pseudogeness_sumary
+#  
+#   pseudogeness_sumary$groups <- plyr::revalue(pseudogeness_sumary$species,c("Buch"="endosmymbiont","Sglos"="endosmymbiont","Ldel"="starter cultures","Sterm"="starter cultures","Wigg"="endosmymbiont","Mleprae"="transition","Rick"="transition","Lplan"="closely related free-living","Ssuis"="closely related free-living"))
+# 
+#  pseudogeness_esclipse <-  rbind(data.frame(species=pseudogeness_sumary$species,groups=pseudogeness_sumary$groups,x=pseudogeness_sumary$meangenes,y=pseudogeness_sumary$meanPseudo),
+#         data.frame(species=pseudogeness_sumary$species,groups=pseudogeness_sumary$groups,x=pseudogeness_sumary$meangenes-pseudogeness_sumary$stdevgene,y=pseudogeness_sumary$meanPseudo),
+#         data.frame(species=pseudogeness_sumary$species,groups=pseudogeness_sumary$groups,x=pseudogeness_sumary$meangenes+pseudogeness_sumary$stdevgene,y=pseudogeness_sumary$meanPseudo),
+#         data.frame(species=pseudogeness_sumary$species,groups=pseudogeness_sumary$groups,x=pseudogeness_sumary$meangenes,y=pseudogeness_sumary$meanPseudo-pseudogeness_sumary$stdevPseudo),
+#         data.frame(species=pseudogeness_sumary$species,groups=pseudogeness_sumary$groups,x=pseudogeness_sumary$meangenes,y=pseudogeness_sumary$meanPseudo+pseudogeness_sumary$stdevPseudo))
+#  
+#  
+#  
+#  plotpoints_esclipse <- ggplot(pseudogeness_esclipse,aes(x=x,y=y,fill=groups,color=groups),group=groups)+labs(x="Gene number",y="Pseudogenes [%]")+theme_classic()+theme(legend.title = element_blank())+stat_ellipse(type = "t", linetype = 2)+theme(legend.position = "none")+lims(x=c(250,4100),y=c(-1.5,40))
+# plotpoints_esclipse
+#  
+# 
+# library(patchwork)
+# 
+# plotpoints+plotpoints_wo+plotpoints_esclipse
+
+```
+
+### Extract 16sV4
+
+1. download all chromosomes.fasta files of species
+2. run [barrnap](https://github.com/tseemann/barrnap) to extract 16s
+3. run [V-Xtractor](https://github.com/carden24/V-Xtractor) to extract 16s V4
+
+```{bash}
+##------------------------------------------
+##1. download all chromosomes.fasta files of species
+##------------------------------------------
+sed 's/_genomic.gbff.gz/_genomic.fna.gz/g' /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt > /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes_contig.txt
+
+sed 's/_genomic.gbff.gz/_genomic.fna.gz/g' /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt > /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes_contig.txt
+
+
+###---
+##download
+###---
+
+rm -r /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+cd /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA
+wget -i /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes_contig.txt
+
+
+rm -r /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+cd /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA
+wget -i /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes_contig.txt
+
+
+##------------------------------------------
+##2. run barrnap to extract 16s
+## AND
+##3. run V-Xtractor to extract 16s V4
+##------------------------------------------
+###---
+##Sterm
+###---
+
+rm -r /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/
+mkdir -p /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/
+rm -r /work/Project/2020_StarterCultureDiversity/16S_search/V4/Strepto/
+mkdir -p /work/Project/2020_StarterCultureDiversity/16S_search/V4/Strepto/
+
+for genomess in $(ls /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA |grep ".fna.gz$" |sed 's/_genomic.fna.gz//g')
+do
+echo ${genomess}
+zcat  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FNA/${genomess}_*.fna.gz  |barrnap --threads 37 -o /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_rrna.fa 
+
+speciess=$(grep "${genomess}" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names |cut -f 2)
+
+samtools faidx /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_rrna.fa 
+num=1
+
+rm  /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/final.fna
+for f16sss in $(grep "16S" -i /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_rrna.fa |sed 's/>//g')
+do
+echo ${f16sss}
+samtools faidx /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_rrna.fa ${f16sss} > /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/tmp.fna
+
+sed "s/^>.*$/>16S-${speciess}-${genomess}-${num}/g" /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/tmp.fna >> /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/final.fna
+num=$((num+1))
+  
+done #16s
+###---------------vxtractor
+cd /home/vincent/apps/V-Xtractor
+
+perl vxtractor.pl -a -r V4 -h HMMs/HMMs/SSU/bacteria/ -o /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_V4.fa /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/final.fna
+cat /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}_V4.fa >>  /work/Project/2020_StarterCultureDiversity/16S_search/V4/Strepto/final_V4.fna
+echo "================================================================="
+rm /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/${genomess}*
+
+done #genomess
+
+###---
+##Ldel
+###---
+rm -r /work/Project/2020_StarterCultureDiversity/16S_search/V4/Lactos/
+mkdir -p /work/Project/2020_StarterCultureDiversity/16S_search/V4/Lactos/
+
+rm -r /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/
+mkdir -p /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/
+for genomess in $(ls /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA |grep ".fna.gz$" |sed 's/_genomic.fna.gz//g')
+do
+echo ${genomess}
+zcat  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FNA/${genomess}_*.fna.gz  |barrnap --threads 37 -o /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_rrna.fa 
+
+speciess=$(grep "${genomess}" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.names |cut -f 2)
+
+samtools faidx /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_rrna.fa 
+num=1
+rm  /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/final.fna
+
+for f16sss in $(grep "16S" -i /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_rrna.fa |sed 's/>//g')
+do
+echo ${f16sss}
+samtools faidx /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_rrna.fa ${f16sss} > /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/tmp.fna
+
+sed "s/^>.*$/>16S-${speciess}-${genomess}-${num}/g" /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/tmp.fna >> /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/final.fna
+num=$((num+1))
+  
+done #16s
+###---------------vxtractor
+cd /home/vincent/apps/V-Xtractor
+
+perl vxtractor.pl -a -r V4 -h HMMs/HMMs/SSU/bacteria/ -o /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_V4.fa /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/final.fna
+cat /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}_V4.fa >>  /work/Project/2020_StarterCultureDiversity/16S_search/V4/Lactos/final_V4.fna
+echo "================================================================="
+rm /work/Project/2020_StarterCultureDiversity/16S_search/16s/Lactos/${genomess}*
+
+done #genomess
+
+##------------------------------------------
+##4. DEREPLICATE WITH CD-HIT
+##------------------------------------------
+
+
+
+```
+
+### Alternative: Extract 16sV4
+
+Alternative to the extraction from the downloaded genomes, we can also get the 16s sequences from GTDB and extract the V4 from the species of interest. 
+This is most likely much more extensive then the previous approach.
+
+```{bash}
+
+
+```
+
 
 
 ### gene duplication
@@ -10899,7 +12051,7 @@ mkdir -p /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_R
 cd /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA
 
     wget -i /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/ldelDownloadgenomes.txt
-
+_genomic.gff.gz   
 #mv GCF_000769515.1_ASM76951v1_protein.faa.gz Out_Bacsub.faa.gz
 
 ###-------------------------------------
@@ -11267,10 +12419,10 @@ cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/P
 
 ##--------------------------
 species=suis
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|'|tail -400 >>    \
      /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
 
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}'|tail -400 >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
 
 
 ##--------------------------
@@ -11290,10 +12442,10 @@ cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/P
 
 ##--------------------------
 species=pyogenes
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' >>    \
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20 | sed -r 's|(ftp://ftp.ncbi.nlm.nih.gov/genomes/all/.+/)(GCF_.+)|\1\2\/\2_protein.faa.gz|' |tail -400 >>    \
      /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.txt
 
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' >> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/NCBI_Refs/log/20210302_NCBI_log.txt |grep -e "${genus}" |grep -i "${species}"|awk -F "\t" 'BEGIN{OFS="\t"} { print $0}'|tail -1 |cut -f 20|awk -v namezzin="$species" '{OFS="\t"}{print $1,namezzin}' |tail -400>> /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names
 
 ##--------------------------
 species=uberis
@@ -13109,7 +14261,6 @@ scp -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/10_REFE
 #sent back to bigmachine
 scp /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/SpeciesTree_rooted_node_labels_rerooted.txt vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Apr12/Species_Tree/ 
 
-
 ```
 
 
@@ -13605,7 +14756,7 @@ p4
 # p5_sterm <- gheatmap(p, Sterm_clusters_RMKS, offset=0.001, width=.05,colnames_angle=75, colnames_offset_y = 0)  #+  scale_fill_manual(values=colors_area)
 # p5_sterm
 
-all_sterm_strain_info_ZOOMED <- read_csv("Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/statsFinal/genomeAssemblyStats.csv",  col_types = cols(starterCulture = col_character(),  strain = col_character())) %>% filter(species=="S.thermophilus") %>% select(c(strain,Cheese,starterCulture,Sequencing)) %>% remove_rownames()%>% column_to_rownames(., var = "strain")%>%replace(is.na(.), "Unknown") 
+all_sterm_strain_info_ZOOMED <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/statsFinal/genomeAssemblyStats.csv",  col_types = cols(starterCulture = col_character(),  strain = col_character())) %>% filter(species=="S.thermophilus") %>% select(c(strain,Cheese,starterCulture,Sequencing)) %>% remove_rownames()%>% column_to_rownames(., var = "strain")%>%replace(is.na(.), "Unknown") 
 
 p3 <- gheatmap(p, all_sterm_strain_info_ZOOMED, offset=0.0005, width=.05,colnames_angle=75, colnames_offset_y = 0)+ geom_treescale()#+  scale_fill_manual(values=colors_area)
 p3
@@ -14528,6 +15679,135 @@ distance_matrix <-cophenetic.phylo(tree_phylog)
 
 
 ```
+## species tree for HGT
+
+I have gathered all the genomes explained in the fig. 1. these include all our sequenced Ldel and Sterm+ all ncbi Ldel and Sterm + many Streptococcus and lactobacillus. 
+
+1. first I need to prepare a list with the metadata. 
+
+```{bash}
+
+
+cd /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/FAA_allRMKs/
+echo -e "Out_Bacsub\tout\tout" > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+###-------------------rmk genomes
+
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GALs_analysis/Poppunk_out.all |grep "^S" |awk -F "\t" '{OFS="\t"}{print $1,"Streptococcus",$2}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GALs_analysis/Poppunk_out.all |grep "^L" |awk -F "\t" '{OFS="\t"}{print $1,"Lactobacillus",$2}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+###-------------------add all species close to Ldel and Sterm from figure 1D/E
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/FAA/|grep ".faa$" | sed 's/.faa//g'|grep -v "thermophilus")
+do
+echo -e ${genomesss}"\tStreptococcus\tNCBI_genus" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/FAA/|grep ".faa$" | sed 's/.faa//g'|grep -v "delbrueckii")
+do
+echo -e ${genomesss}"\tLactobacillus\tNCBI_genus" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+
+###-------------------add all strains close to Ldel and Sterm from figure 1F/G
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Sterm_references/PROKKA_FAA/|grep ".faa$" | sed 's/.faa//g'|grep -v "Out")
+do
+echo -e ${genomesss}"\tStreptococcus\tNCBI_species" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FAA//|grep ".faa$" | sed 's/.faa//g'|grep -v "Out")
+do
+echo -e ${genomesss}"\tLactobacillus\tNCBI_species" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+###-------------------add all strains close to Ldel and Sterm from figure 1F/G out groups
+
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Sterm_references/PROKKA_FAA/|grep ".faa$" | sed 's/.faa//g'|grep  "Out")
+do
+echo -e ${genomesss}"\tStreptococcus\tNCBI_genus" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/Ldel_references/PROKKA_FAA//|grep ".faa$" | sed 's/.faa//g'|grep "Out")
+do
+echo -e ${genomesss}"\tLactobacillus\tNCBI_genus" >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list
+
+done
+```
+
+move local 
+```{bash}
+scp  -r vincent@130.223.51.116:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/
+
+```
+
+
+
+```{r}
+
+library(ape)
+library(ggtree)
+library(tidyverse)
+library(tidytree)
+library(treeio)
+library(TreeTools)
+
+Sterm_tree_raw <- read.nexus("/home/vincent/Desktop/Projects//2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/SpeciesTree_rooted_node_labels_rerooted.txt", tree.names = NULL, force.multi = FALSE)
+
+
+# x <- as_tibble(Sterm_tree_raw)
+
+##plot tree
+# ggplot(Sterm_tree_raw, aes(x, y)) + geom_tree() + theme_tree()
+ggtree(Sterm_tree_raw, layout="circular") +
+  #geom_tiplab(aes(angle=angle),align = FALSE) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)+
+  geom_treescale() + geom_tippoint( size=1)
+
+full_join(as_tibble(Sterm_tree_raw), genome_description, by='label') %>% select(label) %>% table %>% sort()
+
+# tree <- as_tibble(Sterm_tree_raw)
+# tree %>% select(label) %>% filter(!is.na(label)) %>% unlist() %>% as.vector()
+
+library(readr)
+genome_description <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/genome_description.list",  "\t", escape_double = FALSE, col_names = c("label","genus","clustering"),  trim_ws = TRUE) %>% filter(!(label=="out_flor"&genus=="Streptococcus")) %>% filter(label!="L11063")# %>%  recode(label, S-KLDS-3.1= 'S-KLDS-3.1')
+
+tmp1 <- as_tibble(Sterm_tree_raw) #%>% filter(!is.na(label))
+
+tmp1$label <- gsub("\'S-KLDS-3.1\'","S-KLDS-3.1",tmp1$label)
+tmp1$label <- gsub("\'L-KLDS1.0207\'","L-KLDS1.0207",tmp1$label)
+tmp1$label <- gsub("\'L-KLDS1.1011\'","L-KLDS1.1011",tmp1$label)
+
+tmp1[!tmp1$label %in% genome_description$label,]
+genome_description[!genome_description$label %in% tmp1$label,]
+
+
+# tree <- tmp1  %>% as.treedata()
+tmp2 <- full_join(tmp1, genome_description, by='label')
+tmp2$clustering = factor(tmp2$clustering, levels=c(as.character(1:14),"NCBI_genus","NCBI_species","out"))
+
+tree <- tmp2 %>% as.treedata()
+
+cols <- c(rainbow(14),"grey77","grey55","white") #I am not sure this is correct -- did not find the correct color labels anymore
+
+
+plotTreee <- ggtree(tree, layout="circular") +
+  #geom_tiplab(aes(angle=angle),align = FALSE) + # tiplabls aligned
+  geom_rootedge(rootedge = 0)+
+  geom_treescale() + geom_tippoint(aes(color=clustering,shape=genus), size=2,alpha=0.8)+scale_color_manual(values = cols)
+plotTreee
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/generax_phylogney_total.pdf",width=8,height=8)
+
+plotTreee
+
+dev.off()
+
+
+```
 
 
 ## Gal's HGT appraoch
@@ -15084,9 +16364,13 @@ cd /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/prepe
 #  -f  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/log/families_final.log  -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/ouput_generax_final
 
 
-generax --rec-model UndatedDTL --max-spr-radius 3 -s /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Feb11/Species_Tree/SpeciesTree_rooted_node_labels.txt \
-  -f  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/log/families_final.log  -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/ouput_generax_final
+#generax --rec-model UndatedDTL --max-spr-radius 3 -s /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Apr12/Species_Tree/SpeciesTree_rooted_node_labels_rerooted_02.txt \
+#  -f  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/log/families_final.log  -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/ouput_generax_final
 
+
+
+generax --rec-model UndatedDTL --max-spr-radius 3 -s /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/orthofinder/Results_Apr12/Species_Tree/SpeciesTree_rooted_node_labels.txt \
+  -f  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/log/families_final.log  -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/GeneRax/ouput_generax_final
 
 
 ```
