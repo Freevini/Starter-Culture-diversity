@@ -1396,6 +1396,34 @@ plot_point
 
 ```
 
+##prepare gene tables
+somehow in the appendix there are the wrong gene tables prepared. Therefore I will prepare the now gene tables for the R-shiny. 
+```{bash}
+sed 's/gnl|extdb|/S_thermophilus_RMK202_/g' /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/ST_singu/Streptococcus_thermophilus_RMK202_pgap.faa |sed 's/ /-/g' > /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/ST_singu/Streptococcus_thermophilus_RMK202_pgap_preped.faa
+
+sed 's/gnl|extdb|/L_delbrueckii_RMK202_/g' /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/LD_singu/Lactobacillus_delbrueckii_RMK202_pgap.faa |sed 's/ /-/g' > /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/LD_singu/Lactobacillus_delbrueckii_RMK202_pgap_preped.faa
+
+cat /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/ST_singu/Streptococcus_thermophilus_RMK202_pgap_preped.faa  /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/LD_singu/Lactobacillus_delbrueckii_RMK202_pgap_preped.faa > /archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/both_species_RMK202_pgap_preped.faa
+```
+
+
+```{bash}
+scp -r vincent@130.223.51.66:/archiv/Projects/2019_Nano_Meta/02_flye_Assembly/02_raw_undeplexed_plasmids/1AB/Polishing_FINAL_stiched/single/02_PGAP/both_species_RMK202_pgap_preped.faa ~/Desktop/Projects/2019_RNAseq_rmk202/data/
+#L_delbrueckii_RMK202_pgaptmp_000001-
+
+
+grep "^##" -v  ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations |cut -f 1|cut -d '-' -f 1 > ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations_tmp1
+
+grep "^##" -v  ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations > ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations_tmp2
+
+paste ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations_tmp1 ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations_tmp2 |sed 's/^#query/gene/g' >  ~/Desktop/Projects/2019_RNAseq_rmk202/data/out.emapper.annotations_complite
+
+```
+
+
+
+
+
 
 # Appendix
 
@@ -1635,10 +1663,13 @@ write.csv(RMK202_snpeff_eggnog_repeats_core_uniuqes_final,file="~/Desktop/presen
 colnames(RMK202_snpeff_eggnog_repeats_core_uniuqes_final)
 RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce <- RMK202_snpeff_eggnog_repeats_core %>% select(c("finalName","Preferred_name","eggNOG free text description","EC","KEGG_ko","KEGG_Reaction","CAZy","BiGG_Reaction","COG_Functional_Category","core")) %>% distinct()
 
-RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce <- RMK202_snpeff_eggnog_repeats_core %>% select(c("finalName","Preferred_name","eggNOG free text description","EC","KEGG_ko","core")) %>% distinct()
+RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce <- RMK202_snpeff_eggnog_repeats_core %>% select(c("typeName","finalName","Preferred_name","eggNOG free text description","EC","KEGG_ko","core")) %>% mutate(gene=typeName) %>% select(-typeName)%>% distinct()
 
-write.csv(RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce,file="~/Desktop/presenations/my_presentations/20191007_groupmeeting/figures/RMK202_snpeff_eggnog_repeats_core_dNdS_uniqueGenes_subset.txt")
+# RMK202_snpeff_eggnog_repeats_core$typeName
 
+# write.csv(RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce,file="~/Desktop/presenations/my_presentations/20191007_groupmeeting/figures/RMK202_snpeff_eggnog_repeats_core_dNdS_uniqueGenes_subset.txt")
+
+write.csv(RMK202_snpeff_eggnog_repeats_core_uniuqes_final_reduce,file="~/Desktop/presenations/my_presentations/20191007_groupmeeting/figures/RMK202_snpeff_eggnog_repeats_core_dNdS_uniqueGenes_subset_02.txt")
 
 ```
 
