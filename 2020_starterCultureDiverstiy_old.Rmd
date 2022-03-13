@@ -9959,6 +9959,43 @@ done #species
 
 ```
 
+#### annotation stats
+
+```{bash}
+
+
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_analysis.txt
+rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_transposases_analysis.txt
+mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats
+for speciesss in $(echo "Sterm Ldel")
+do
+for id in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}/01_all_GFF/ |sed 's/.gff//g')
+  do
+  echo ==========================
+   echo ${id}
+   echo ==========================
+ 
+ 
+#   contiNumber=$(grep ">" -c /archiv/Projects/2018_Culturomics/06_Spades/${id}/Prokka/2*/*19.gff) 
+#   GenomeLength=$(grep -v "^>" /archiv/Projects/2018_Culturomics/06_Spades/${id}/Prokka/2*/*19.gff  |wc -c)
+  
+  gensss=$(grep "gene: " /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/gene: //g')
+  tRNAsss=$(grep "tRNA: "  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/tRNA: //g')
+  rRNAsss=$(grep "rRNA: "  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/rRNA: //g')
+  
+  
+  
+  transpononssss=$(grep "ISfinder:" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.gff |wc -l)
+
+grep "ISfinder:" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.gff |grep ";product=" |awk -F ";product=" '{OFS="\t"}{print $2}'|awk -F " family transposase " -v namzzz="$id" '{OFS="\t"}{print namzzz,$1,$2}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_transposases_analysis.txt
+
+ echo -e ${id}"\t"${gensss}"\t"${tRNAsss}"\t"${rRNAsss}"\t"${transpononssss}  >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_analysis.txt
+
+    done
+done #species
+
+
+```
 
 ####mapping stats
 
@@ -10947,7 +10984,7 @@ rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation
 
 
 rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes.gff
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete.gff
+
 for speciesss in $(echo "Sterm Ldel")
 do
 
@@ -10966,43 +11003,10 @@ echo $genomesss
 #cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/${speciesss}/${genomesss}.ffn >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes.ffn
 
 
-#grep "pseudogene" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF/${speciesss}/${genomesss}.gff |awk -F "[\t;]" '{OFS="\t"}{print $1,$4,$5,$9,$10,$11,$12,$13,$14}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes.gff
-
-grep ";pseudo=true;" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF/${speciesss}/${genomesss}.gff  >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete.gff
+grep "pseudogene" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF/${speciesss}/${genomesss}.gff |awk -F "[\t;]" '{OFS="\t"}{print $1,$4,$5,$9,$10,$11,$12,$13,$14}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes.gff
 
 done #genomesss
 done #species
-
-
-
-##-----------pseudo
-
-
-wc -l /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete.gff
-
-grep "=is" -i  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete.gff |awk -F "[\t;]" '{OFS="\t"}{print $1,$4,$5,$9,$10,$11,$12,$13,$14}' > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase.gff
-grep "transposase" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete.gff |awk -F "[\t;]" '{OFS="\t"}{print $1,$4,$5,$9,$10,$11,$12,$13,$14}' > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase.gff
-
-
-cut -f 4 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase.gff |sort|uniq |sed 's/ID=cds-FAM/ps-/g' > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned.gff
-
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss.gff
-
-for genesss in $(cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned.gff)
-do
-
-echo $genesss
-
-grep "${genesss}" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/mmseqs2_clustering_all/cluster_ps.txt >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss.gff
-
-done
-
-cut -f 1 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss.gff |sort|uniq> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss_derep.gff
-
-cut -f 1 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/mmseqs2_clustering_all/cluster_ps.txt|sort|uniq |wc -l 
-wc -l /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss_derep.gff
-wc -l /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/all_pseudogenes_complete_transposase_cleaned_clusterss.gff 
-
 
 ###-----------------------
 #cluster
@@ -11228,7 +11232,7 @@ tree_phylo$tip.label[numbers]
 ##------------------------------
 cluster_ps <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudo/mmseqs2_clustering_all/cluster_ps.txt",  "\t", escape_double = FALSE, col_names = c("cluster","gene"),  trim_ws = TRUE)
 
-cluster_ps$genome <- str_split_fixed(cluster_ps$gene,"-",4)[,2]
+
 
 analysis_clusters_ldel <- read_delim("/home/vincent/Desktop/Projects/2020_StarterCultureDiversity/06_PopPUNK/Sterm_RMK/20210128_easyrun/20210128_easyrun_clusters_RMKS_ldel.csv",  ",") %>% add_column(species="Ldel") %>% select(-Cluster)
 analysis_clusters_sterm <- read_delim("/home/vincent/Desktop/Projects/2020_StarterCultureDiversity/06_PopPUNK/Sterm_RMK/20210128_easyrun/20210128_easyrun_clusters_RMKS_sterm.csv",  ",")%>% add_column(species="Sterm") %>% select(-Cluster)
@@ -11237,7 +11241,7 @@ analysis_clusters_all <- rbind(analysis_clusters_sterm,analysis_clusters_ldel)
 
 analysis_clusters_all$Taxon <- gsub("S","",analysis_clusters_all$Taxon) %>% gsub("L","",.)
 
-# C("ps-10980-i1-1.1_000998" ,"ps-24763-i1-1.1_001759")
+C("ps-10980-i1-1.1_000998" ,"ps-24763-i1-1.1_001759")
 
 
 
@@ -11246,7 +11250,7 @@ cluster_ps_species <- merge(cluster_ps,analysis_clusters_all,by.x="genome",by.y=
 tmp <- cluster_ps_species %>% select(cluster,species) %>% unique() 
 table(tmp$cluster) %>% sort(decreasing = TRUE)
 
-
+cluster_ps$genome <- str_split_fixed(cluster_ps$gene,"-",4)[,2]
 genome_names_corrected <- data.frame()
 
 for (genomesss in unique(cluster_ps$genome)){
@@ -11312,7 +11316,7 @@ library(ggtern)
 
 # ggtern(data=cluster_ps_final_cleaned_count_wide_final,aes(x=complete,y=lost, z=pseudogenes,fill=total_genomes,color=total_genomes)) +
   # geom_point()
-dim(cluster_ps_final_cleaned_count_wide_final)
+
 pseudogenization_plot <- ggtern(data=cluster_ps_final_cleaned_count_wide_final,aes(x=complete,y=lost, z=pseudogenes,color=total_genomes,size=total_genomes)) +
   geom_point(alpha=0.5) +#scale_size(trans = 'reverse')+
   # labs(title="Population structure, 2015") +
@@ -11363,9 +11367,6 @@ pseudogenization_plot_species <- ggtern(data=cluster_ps_final_cleaned_count_wide
   geom_point(alpha=0.5,size=3.5) + scale_color_manual(values =colorsss )+#scale_size(trans = 'reverse')+
   # labs(title="Population structure, 2015") +
   theme_rgbw()
-
-table(cluster_ps_final_cleaned_count_wide_final_species$species)
-dim(cluster_ps_final_cleaned_count_wide_final_species)
 
 pseudogenization_plot_species
 pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pseudogenization_species.pdf",width=11,height=9)
@@ -13487,14 +13488,14 @@ wget https://bcb.unl.edu/dbCAN2/download/dbCAN-HMMdb-V10.txt
 rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/anlayis/HMM_GH/
 mkdir -p  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/anlayis/HMM_GH/
 cd /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/
-for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FAA/ |sed 's/.faa//g' )
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/FAA/|sed 's/.faa//g' )
 do
 
 echo "=================================="
 echo ${genomesss}
 
 
-hmmscan --cpu 5 --domtblout anlayis/HMM_GH/$genomesss.faa.out.dm /work/Databases/20211209_DBcan2_v10/dbCAN-HMMdb-V10.txt /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FAA//$genomesss.faa >  anlayis/HMM_GH/$genomesss.faa.out
+hmmscan --cpu 5 --domtblout anlayis/HMM_GH/$genomesss.faa.out.dm /work/Databases/20211209_DBcan2_v10/dbCAN-HMMdb-V10.txt FAA/$genomesss.faa >  anlayis/HMM_GH/$genomesss.faa.out
 
 
 done
@@ -13504,7 +13505,7 @@ done
 ##-----------------------------------------------------------------------
 
 rm anlayis/HMM_GH/hmm_analysis.txt
-for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FAA/ | grep ".faa" |sed 's/.faa//g' )
+for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/FAA/ | grep ".faa" |sed 's/.faa//g' )
 do
 
 echo "=================================="
@@ -13519,40 +13520,17 @@ countss=$(wc -l anlayis/HMM_GH/$genomesss.faa.out_parsed |cut -d ' ' -f 1)
 echo -e  ${genomesss}"\t"${countss} >> anlayis/HMM_GH/hmm_analysis.txt
 done
 
-
 ##-----------------------------------------------------------------------
 #move local
 ##-----------------------------------------------------------------------
-mkdir -p /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/anlayis/HMM_GH
+mkdir -p /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/tmp/
 
 scp -r vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/anlayis/HMM_GH/Streptococcus_oralis-16.faa.out.dm /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/tmp/
 
 
-scp -r vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/anlayis/HMM_GH/hmm_analysis.txt /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/anlayis/HMM_GH/hmm_analysis.txt
 
 
 ```
-
-rAnalysis
-
-```{r}
-
-library(tidyverse)
-
-hmm_analysis <- read_table2("~/Desktop/Projects/2020_StarterCultureDiversity/anlayis/HMM_GH/hmm_analysis.txt",  col_names = c("strain","GH")) %>% mutate(species=gsub("-.*$","",strain))
-
-table(hmm_analysis$species)
-
-hmm_analysis_median <-  hmm_analysis %>% group_by(species) %>% summarise(genome_count=n(),median_GH=median(GH))
-hmm_analysis_median
-write.csv(hmm_analysis_median,"~/Desktop/Projects/2020_StarterCultureDiversity/anlayis/HMM_GH/hmm_analysis_prepped.txt",quote = FALSE,row.names = FALSE)
-
-
-```
-
-
-
-
 
 ##### check number of complete genomes NCBI
 
@@ -13845,15 +13823,14 @@ cd /work/Projects/2020_StarterCultureDiversity/11_treeoflife/TOL_rrna/LAB/specie
 
 mafft-linsi --thread 37 --maxiterate 1000    /work/Projects/2020_StarterCultureDiversity/11_treeoflife/TOL_rrna/LAB/species_final/rRNA/all_rRNAoperon.fa >  /work/Projects/2020_StarterCultureDiversity/11_treeoflife/TOL_rrna/LAB/species_final/rRNA/pyhlogeny/all_rRNAoperon.fa_aln
 
-
-
 ##------------------------------------------------------
 #pyhlogeny
 ##------------------------------------------------------
 
+/home/vincent/anaconda3/bin/raxmlHPC-PTHREADS-AVX2 -f a -x 12345 -p 12345 -# 100 -m GTRCAT -s 
+/work/Projects/2020_StarterCultureDiversity/11_treeoflife/TOL_rrna/LAB/species_final/rRNA/pyhlogeny/all_rRNAoperon.fa_aln -n lactos -T 37
 
 
-/home/vincent/anaconda3/bin/raxmlHPC-PTHREADS-AVX2 -f a -x 12345 -p 12345 -# 100 -m GTRCAT -s /work/Projects/2020_StarterCultureDiversity/11_treeoflife/TOL_rrna/LAB/species_final/rRNA/pyhlogeny/all_rRNAoperon.fa_aln -n lactos -T 37
 ```
 
 
@@ -14259,8 +14236,6 @@ p3
 
 p4 <- p3+geom_cladelab(align=TRUE,node=415, label="Oneococcus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=416, label="Leuconostoc",geom="text",angle='auto',offset=-0.2,offset=-0.2)+geom_cladelab(align=TRUE,node=429, label="Weissela",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=443, label="Limoslactibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=439, label="Paucilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=454, label="Lactiplantibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=467, label="Lentilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=461, label="Apilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=476, label="Secundilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=482, label="Levilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=402, label="Pediococcous",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=487, label="Liquorilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=376, label="Companilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=375, label="Bombilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=385, label="Lapidilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=343, label="Schleiferilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=388, label="Lacticaseibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=397, label="Latilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=338, label="Loigolactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=519, label="mix",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=506, label="Carnobacterium",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=282, label="Lactococcus",geom="text",angle='auto',offset=-0.2)
   
-p4
-
  png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pyhlogeny_tof_03.png", width = 3000, height = 3000,res=400)
 # pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
 
@@ -14270,255 +14245,7 @@ p4
 dev.off()
 
 # +geom_cladelab(align=TRUE,node=462, label="Fructilactobacillus",geom="text",angle='auto',offset=-0.2)
-
-##-------------------------------------------------
-#only tree
-##-------------------------------------------------
-
-
-p4 <- tree_04+geom_cladelab(align=TRUE,node=415, label="Oneococcus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=416, label="Leuconostoc",geom="text",angle='auto',offset=-0.2,offset=-0.2)+geom_cladelab(align=TRUE,node=429, label="Weissela",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=443, label="Limoslactibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=439, label="Paucilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=454, label="Lactiplantibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=467, label="Lentilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=461, label="Apilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=476, label="Secundilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=482, label="Levilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=402, label="Pediococcous",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=487, label="Liquorilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=376, label="Companilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=375, label="Bombilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=385, label="Lapidilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=343, label="Schleiferilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=388, label="Lacticaseibacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=397, label="Latilactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=338, label="Loigolactobacillus",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=519, label="mix",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=506, label="Carnobacterium",geom="text",angle='auto',offset=-0.2)+geom_cladelab(align=TRUE,node=282, label="Lactococcus",geom="text",angle='auto',offset=-0.2)
-  
-p4
-
-# png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/pyhlogeny_tof_03.png", width = 3000, height = 3000,res=400)
- pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total_onlyTREE.pdf",width=10,height=10)
-
-p4
-
-
-dev.off()
-
-
-##-------------------------------------------------
-#add GH
-##-------------------------------------------------
-
-
-hmm_analysis_median <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/anlayis/HMM_GH/hmm_analysis_prepped.txt") %>% mutate(genome=gsub("Lactobacillus_","L. ",species)) %>% mutate(genome=gsub("Streptococcus","S. ",genome))
-
-
-hmm_analysis_median
-hmm_analysis_median
-
-lactose_streps_lactos <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_referenceTree_SpeciesTREE_large_02/lactose_streps_lactos.txt",   delim = "\t", escape_double = FALSE, trim_ws = TRUE,col_names = c("genome","LAC"))
-lactose_streps_lactos$genome <- gsub("_.*","",lactose_streps_lactos$genome)
-lactose_streps_lactos$genome <- gsub("Streptococcus-","S. ",lactose_streps_lactos$genome)
-lactose_streps_lactos$genome <- gsub("Lactobacillus-","L. ",lactose_streps_lactos$genome)
-
-# lactose_streps_lactos$shortName <- as.character(lactose_streps_lactos$shortName)
-all_sterm_strain_info_ready <- lactose_streps_lactos  %>% remove_rownames()%>% column_to_rownames(., var = "genome")
-# table(all_sterm_strain_info_ready$location_continent)
- # all_sterm_strain_info_ready$location_continent = factor(all_sterm_strain_info_ready$location_continent, levels=c("Europe",  "Asia", "USA", "Australia" , "Unknown","Outgroup"))
-# colors_area <- c("#464D77","#36827F","#F9DB6D","grey88")
-# colors_area <- c("#F9DB6D","#36827F","#464D77","grey88")
-
-# location_dataset$area
-
-# tree_02 <- full_join(as_tibble(tree), location_dataset, by='label') %>% as.treedata()
-
-# colnames(all_sterm_strain_info_ready) <- c("A","B")
-# rownames(all_sterm_strain_info_ready)
-
-p3 <- gheatmap(tree_04, all_sterm_strain_info_ready, offset=0.04, width=.05,colnames_angle=95, colnames_offset_y = 0,hjust = -0.25)#+  scale_fill_manual(values=colors_area)
-p3
-
-
-
-
-
-
 ```
-
-
-###PGAP
-
-###### pseudogene origin
-
-```{bash}
-
-##-------------------------------------------------
-#testing
-##-------------------------------------------------
-
-### pgap gbff 2 gff
-
-gbff2gff.sh
-
-genomesss_short=GCF_900322585.1_Lactobacillus_delbrueckii_subsp._lactis_genomic
-
-mkdir -p /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/
-
-zgrep "/pseudo" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss_short}.gbff.gz |wc -l
-
-#gbff2gff.sh /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss_short}.gbff.gz /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff
-rm /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff
-
-/home/vincent/anaconda3/envs/PROKKA/bin/bp_genbank2gff3.pl  --quiet  /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GBF/${genomesss_short}.gbff.gz -out stdout > /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff
-
-
-
-#of interes
-pseudogenic_exon
-
-grep "^NZ_LS99" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff |cut -f 3 |sort|uniq -c
-awk '{if($3=="pseudogene" || $3=="pseudogenic_exon") print $0}' /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff
-
-awk '{if($3=="CDS" || $3=="pseudogenic_exon") print $0}' /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff |grep "pseudogenic_exon" -A 2 -B 2
-
-# /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff |head -20
-
-grep "transpos" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/Ldel/genomes/GFF/${genomesss_short}.gff |head -20
-
-
-
-
-
-##---------------------------------------------------
-#only RMK strains
-##---------------------------------------------------
-
-
-##--------------------
-#make  gff file
-##--------------------
-
-for species in $(echo "Ldel Sterm")
-do
-echo "==============================="
-echo ${species}
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}
-
-for genomessss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/ |grep ".gbk" |sed 's/.gbk//g')
-do
-echo ${genomessss}
-
-
-/home/vincent/anaconda3/envs/PROKKA/bin/bp_genbank2gff3.pl  --quiet  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/${genomessss}.gbk -out stdout > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}/${genomessss}.gff
-
-
-done #${genomessss}
-
-
-done #species
-
-
-
-
-##--------------------
-#identify pseudo gene origin
-##--------------------
-
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/log
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/log/pseudo_origin.txt
-
-
-#/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/Sterm/24730.gbk
-#/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF
-
-for species in $(echo "Ldel Sterm")
-do
-
-
-for genomessss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GBK/${species}/ |grep ".gbk" |sed 's/.gbk//g')
-do
-
-#awk '{if($3=="CDS" || $3=="pseudogenic_exon") print $0}' /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/${species}/genomes/GFF/${genomesss_short}.gff |grep "pseudogenic_exon" -A 2 -B 2 |
-
-for pseudognesss in $(awk '{if($3=="pseudogenic_exon") print $9}' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}/${genomessss}.gff |cut -d ';' -f 1 )
-do
-
-#echo $pseudognesss
-
-reason=$(awk '{if($3=="CDS" || $3=="pseudogenic_exon") print $0}' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}/${genomessss}.gff |grep "${pseudognesss};"  |sed 's/.*;Note=//g' |sed 's/%.*//g')
-
-count1=$(awk '{if($3=="CDS" || $3=="pseudogenic_exon") print $0}' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}/${genomessss}.gff |grep "${pseudognesss};" -A 2 -B 2 |grep "transpos" -i |wc -l)
-count2=$(awk '{if($3=="CDS" || $3=="pseudogenic_exon") print $0}' /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/GFF_created/${species}/${genomessss}.gff |grep "${pseudognesss};" -A 2 -B 2 |grep "=IS" -i  |wc -l)
-countFinal=$((count1+count2))
-echo -e ${species}"\t"${genomessss}"\t"${pseudognesss}"\t"${reason}"\t"${countFinal} 
-echo -e ${species}"\t"${genomessss}"\t"${pseudognesss}"\t"${reason}"\t"${countFinal} >>  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/log/pseudo_origin.txt
-
-done #pseudognesss
-
-
-done #genomessss
-
-done #species
-
-##---------------------------------------
-#move local
-##---------------------------------------
-
-
-mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/
-scp  vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/log/pseudo_origin.txt /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/
-
-```
-
-plotting
-
-```{r}
-library(tidyverse)
-pseudo_origin <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/pseudo_origin.txt", 
-    delim = "\t", escape_double = FALSE, 
-    col_names = c("species","genome","gene","reason","transoposon"), trim_ws = TRUE, col_types = cols(genome = col_character())) %>% mutate(pseudoTrans=ifelse(transoposon==0,"NO","YES"))
-
-pseudo_origin$species  <- plyr::revalue(pseudo_origin$species,c("Ldel"="L.delbrueckii","Sterm"="S.thermophilus"))
-
-
-
-# table(pseudo_origin$pseudoTrans)
-
-pseudogene_origin_summary <- pseudo_origin %>% group_by(species,genome,reason,pseudoTrans) %>% summarise(countss=n()) %>% filter(reason %in% c("frameshifted","incomplete","internal stop")) %>% group_by(species,reason,pseudoTrans) %>% summarise(means=mean(countss),medians=median(countss),sdss=sd(countss))
-
-
-
-ggplot(pseudogene_origin_summary,aes(x=reason,y=medians,color=pseudoTrans,fill=pseudoTrans))+geom_col()+theme_classic()+facet_wrap(~species)
-ggplot(pseudogene_origin_summary,aes(x=reason,y=medians,fill=pseudoTrans))+geom_bar(stat = "identity")+theme_classic()+facet_wrap(~species)+geom_errorbar(aes(ymin=medians-sdss, ymax=medians+sdss), width=.2) 
-
-
-
-##with errorbars
-
-pseudogene_origin_summary %>% spread(., reason, medians) %>% mutate(y=error=ifelse(pseudoTrans=="YES",medians,))
-
-###Overall
-
-
-pseudogene_origin_summary_wo <- pseudo_origin %>% group_by(species,genome,reason) %>% summarise(countss=n()) %>% filter(reason %in% c("frameshifted","incomplete","internal stop")) %>% group_by(species,reason) %>% summarise(means=mean(countss),medians=median(countss),sdss=sd(countss))
-
-# ggplot(pseudogene_origin_summary_wo,aes(x=reason,y=medians))+geom_bar(stat = "identity")+theme_classic()+facet_wrap(~species)+geom_errorbar(aes(ymin=medians-sdss, ymax=medians+sdss), width=.2) 
-plotOverall <- ggplot()+geom_bar(data=pseudogene_origin_summary_wo,aes(x=reason,y=medians),stat = "identity",fill="#254E70")+theme_classic()+facet_wrap(~species)+geom_errorbar(data=pseudogene_origin_summary_wo,aes(x=reason,y=medians,ymin=medians-sdss, ymax=medians+sdss), width=.2) +labs(x="",y="Pseudogenes")
-plotOverall
-
-
-
-  png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plot_pseudoCount.png", width = 2200, height = 1500,res=300)
-# pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
-
-plotOverall
-
-
-dev.off()
-
-###transposons
-
-
-pseudogene_origin_summary_transp <- pseudogene_origin_summary %>% filter(pseudoTrans=="YES")
-
-plottranpso <-ggplot()+geom_bar(data=pseudogene_origin_summary_wo,aes(x=reason,y=medians),stat = "identity",fill="#254E70")+theme_classic()+facet_wrap(~species)+geom_errorbar(data=pseudogene_origin_summary_wo,aes(x=reason,y=medians,ymin=medians-sdss, ymax=medians+sdss), width=.2) +
-      geom_bar(data=pseudogene_origin_summary_transp,aes(x=reason,y=medians),stat = "identity",fill="#C33C54")+geom_errorbar(data=pseudogene_origin_summary_transp,aes(x=reason,y=medians,ymin=medians-sdss, ymax=medians+sdss), width=.2)+labs(x="",y="Pseudogenes")
-plottranpso
-
-  png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plot_pseudoCount_colored.png", width = 2200, height = 1500,res=300)
-# pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
-
-plottranpso
-
-dev.off()
-```
-
-
 
 
 ### Prokka
@@ -14576,159 +14303,8 @@ prokka --outdir /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/
 done
 done
 
-#===========================================================================
-#ALL SPECIES
-#===========================================================================
-
-
-
-##------------------------------------------------------------------
-#PREP
-##------------------------------------------------------------------
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/
-
-for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Ldel/01_all_FNA|sed 's/.fna//g')
-do
-
-cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Ldel/01_all_FNA/${genomesss}.fna /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/Lactobacillus_delbrueckii_subsp_lactis-${genomesss}.fna
-
-done
-
-##----------Sterm
-
-for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FNA|sed 's/.fna//g')
-do
-
-cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/Sterm/01_all_FNA/${genomesss}.fna /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/Streptococcus_thermophilus-${genomesss}.fna
-
-done
-
-cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/wide_genus_analyis/Lactos_Streptos/FNA/*.fna /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/
-
-ls  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/ |wc -l
-
-##------------------------------------------------------------------
-#PROKKA
-##------------------------------------------------------------------
-
-conda activate PROKKA
-
-
-for genomes in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all// |grep ".fna" |sed 's/.fna//g')
-do
-echo "==========================================="
-echo ${genomes}
-
-rm -r  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA/${genomes}/
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}/
-
-prokka --outdir //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}/ --force --proteins proteins.faa --evalue 0.001 --addgenes   /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all/${genomes}.fna --cpus 25
-
-done
-
-
-##------------------------------------------------------------------
-##create FAA and FNA folders
-##------------------------------------------------------------------
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all*
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/{01_all_FAA,01_all_FNA,01_all_GFF,01_all_FFN}
-
-for genomes in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/FNA_all// |grep ".fna" |sed 's/.fna//g')
-do
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}//PROKKA*.fna > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FNA/${genomes}.fna
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}//PROKKA*.ffn > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FFN/${genomes}.ffn
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}//PROKKA*.faa > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FAA/${genomes}.faa
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/${genomes}//PROKKA*.gff > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_GFF/${genomes}.gff
-
-done #genomes
-
 
 ```
-
-###### transposase diversity
-
-
-
-```{bash}
-
-
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_analysis.txt
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_transposases_analysis.txt
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats
-for speciesss in $(echo "Sterm Ldel")
-do
-for id in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}/01_all_GFF/ |sed 's/.gff//g')
-  do
-  echo ==========================
-   echo ${id}
-   echo ==========================
- 
- 
-#   contiNumber=$(grep ">" -c /archiv/Projects/2018_Culturomics/06_Spades/${id}/Prokka/2*/*19.gff) 
-#   GenomeLength=$(grep -v "^>" /archiv/Projects/2018_Culturomics/06_Spades/${id}/Prokka/2*/*19.gff  |wc -c)
-  
-  gensss=$(grep "gene: " /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/gene: //g')
-  tRNAsss=$(grep "tRNA: "  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/tRNA: //g')
-  rRNAsss=$(grep "rRNA: "  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.txt |sed 's/rRNA: //g')
-  
-  
-  
-  transpononssss=$(grep "ISfinder:" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.gff |wc -l)
-
-grep "ISfinder:" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${speciesss}//${id}/PROKKA_*.gff |grep ";product=" |awk -F ";product=" '{OFS="\t"}{print $2}'|awk -F " family transposase " -v namzzz="$id" '{OFS="\t"}{print namzzz,$1,$2}' >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_transposases_analysis.txt
-
- echo -e ${id}"\t"${gensss}"\t"${tRNAsss}"\t"${rRNAsss}"\t"${transpononssss}  >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_analysis.txt
-
-    done
-done #species
-
-
-##---------------------------------------
-#move local
-##---------------------------------------
-
-
-mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/
-scp  vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/stats//all_annotation_transposases_analysis.txt /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/
-
-```
-
-```{r}
-library(tidyverse)
-all_annotation_transposases_analysis <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/all_annotation_transposases_analysis.txt", 
-    delim = "\t", escape_double = FALSE, 
-    col_names = c("genome","Isfamily","ISsubfamily"), trim_ws = TRUE) %>% mutate(species=substr(genome, 1, 1))
-
-all_annotation_transposases_analysis$species  <- plyr::revalue(all_annotation_transposases_analysis$species,c("L"="L.delbrueckii","S"="S.thermophilus"))
-
-
-table(all_annotation_transposases_analysis$species)
-
-
-all_annotation_transposases_analysis_summary <- all_annotation_transposases_analysis %>% group_by(species,genome,Isfamily) %>% summarise(countss=n()) %>% group_by(species,Isfamily) %>% summarise(medians=median(countss),means=mean(countss),sdss=sd(countss))%>%replace(is.na(.), 0) 
-
-
-plottranpso <- ggplot()+geom_bar(data=all_annotation_transposases_analysis_summary,aes(x=Isfamily,y=means),stat = "identity",fill="#254E70")+theme_classic()+facet_wrap(~species, scales="free_x")+geom_errorbar(data=all_annotation_transposases_analysis_summary,aes(x=Isfamily,y=means,ymin=means-sdss, ymax=means+sdss), width=.2) +labs(x="Insertation Sequence Families",y="Transposons")+theme(axis.text.x = element_text(angle = 60, hjust = 1,size=9),legend.position = "none")
-plottranpso
-
-
-  png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plot_transposons_families.png", width = 3000, height = 1500,res=300)
-# pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
-
-plottranpso
-
-dev.off()
-
-
-```
-
-
-
 
 ### pandaroo
 
@@ -14764,136 +14340,20 @@ done
 ##-----sterm
 
 species=Sterm
-conda deactivate
-conda activate panaroo
-
-#for speciess in $(echo "Ldel Sterm Lhelv")
-for speciess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/|grep "^01" -v |sed "s/-.*$//g" |sort|uniq)
-
-do
-echo ${speciess}
-ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/ |grep "${speciess}" -c
-
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
-
-panaroo -t 20 -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_GFF/${speciess}-*.gff -o /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/ --clean-mode strict
-
-done
-
-
-##==========================================
-###-----------------panaroo all species 
-##==========================================
-
-##-----sterm
-
-species=Sterm
-conda deactivate
 
 conda activate panaroo
 
-for speciess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/ |sed "s/-.*$//g" |sort|uniq)
+for speciess in $(echo "Ldel Sterm Lhelv")
 do
 rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
 mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
 
-panaroo -t 25 -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA/${speciess}/01_all_GFFs/*.gff -o /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/ --clean-mode strict
+panaroo -t 5 -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA/${speciess}/01_all_GFFs/*.gff -o /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/ --clean-mode strict
 
 done
 
 
-
-####-------------------------------------------------
-##identify transposase genes
-####-------------------------------------------------
-
-
-
-
 ```
-
-### pan-core ratio
-```{bash}
-##==========================================
-###-----------------calculate pan-core ratio
-##==========================================
-
-
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/All_pan_core.txt
-#for speciess in $(echo "Ldel Sterm Lhelv")
-for speciess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/|grep "^01" -v |sed "s/-.*$//g" |sort|uniq)
-
-do
-echo ${speciess}
-countsss=$(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/ |grep "${speciess}" -c)
-
-
-# cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/summary_statistics.txt
- 
-pan_count=$(grep "Total genes" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/summary_statistics.txt |awk -F "%)" '{print $2}'| sed 's/^ *//g')
- 
-core_count=$(grep "Core genes" /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/summary_statistics.txt |awk -F "%)" '{print $2}'| sed 's/^ *//g')
- 
-echo -e ${speciess}"\t"${pan_count}"\t"${core_count}"\t"${countsss} >> /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/All_pan_core.txt
-done
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/All_pan_core.txt
-
-##----------------------------------------------
-#bring local
-##----------------------------------------------
-
-mkdir -p /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/
-scp  vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/All_pan_core.txt /home/vincent/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/
-
-
-
-```
-### species infos
-
-```{r}
-
-library(tidyverse)
-All_pan_core <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/All_pan_core.txt", delim = "\t", escape_double = FALSE,  col_names = c("species","pan","core","genomes"), trim_ws = TRUE) %>% mutate(pan_core_ratio=pan/core)
-All_pan_core$catagory <- ifelse(All_pan_core$species %in% c("Lactobacillus_delbrueckii_subsp_lactis","Lactobacillus_helveticus","Streptococcus_thermophilus"),"focal","not")
-
-# All_pan_core$species  <- plyr::revalueAll_pan_core$species 1,c("Ldel"="L.delbrueckii","Sterm"="S.thermophilus"))
-# 
-
-All_pan_core$species
-
-ggplot(All_pan_core,aes(x=species,y=core,fill=catagory))+geom_bar(stat = "identity")+theme_classic()+theme(axis.text.x = element_text(angle = 60, hjust = 1,size=9),legend.position = "none")
-
-
-ggplot(All_pan_core,aes(x=species,y=pan_core_ratio,fill=catagory))+geom_bar(stat = "identity")+theme_classic()+theme(axis.text.x = element_text(angle = 60, hjust = 1,size=9),legend.position = "none")
-
-
-plot_pan_core <- ggplot(All_pan_core,aes(x=core,y=pan_core_ratio,fill=catagory,color=catagory,size=genomes))+geom_point(stat = "identity")+theme_classic()+theme(axis.text.x = element_text(angle = 60, hjust = 1,size=9),legend.position = "none")+labs(x="core genome size",y="pan-core Ratio")
-  
-plot_pan_core
-png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plot_pan_core.png", width = 2200, height = 1500,res=300)
-# pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
-
-plot_pan_core
-
-
-dev.off()
-
-
-##with genome size
-
-
-pseudogeness_count <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PGAP/pseudogeness_count.txt",  "\t", escape_double = FALSE, col_names = c("species","genome","genes_coding","pseudogenes"), trim_ws = TRUE) %>% filter(pseudogenes<1000) %>% filter(genes_coding<4000)%>% mutate(pseudogenes_percent = 100*(pseudogenes/genes_coding)) %>% filter(species!="Wigg")%>% filter(species!="Scap")
-
-
-pseudogeness_sumary <- pseudogeness_count %>% group_by(species) %>%  dplyr::summarize(meanPseudo=100*(mean(pseudogenes)/mean(genes_coding)),meangenes=mean(genes_coding),stdevPseudo=100*(sd(pseudogenes)/mean(genes_coding)),stdevgene=sd(genes_coding))
-
-
-
-```
-
-
 
 ### identify duplicated genes
 
@@ -14924,7 +14384,6 @@ library(tidyverse)
 ##===========================================================
 speciess <- "Sterm"
 Sterm_pandaroo <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/Sterm_gene_presence_absence_roary.csv")
-
 
 ##-------------------script-------------
 
@@ -14990,35 +14449,9 @@ Sterm_pandaroo_short$uniqNumber <- 1:nrow(Sterm_pandaroo_short)
 Sterm_pandaroo_long <- gather(Sterm_pandaroo_short, genome, gene_name, colnames(Sterm_pandaroo_short)[2:(ncol(Sterm_pandaroo_short)-1)], factor_key=TRUE,na.rm = TRUE)  %>% mutate(gene_name = strsplit(as.character(gene_name), ";")) %>% unnest(gene_name)
 
 extended_gene_dup <- merge(Sterm_pandaroo_long,Sterm_pandaroo_count_duplic_sub,by=c("Gene","genome")) %>% mutate(uniqName=paste0(genome,".",uniqNumber))
-
 write.table(extended_gene_dup,"~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/extended_gene_dup.csv",sep="\t",quote = FALSE,row.names = FALSE)
 
 
-##-----------------------------------
-#check which are transpoases
-##-----------------------------------
-
-
-Sterm_pandaroo$Gene %>% length()
-Sterm_pandaroo$Gene %>% unique() %>% length()
-
-
-TRANSPOSASE_GENES_01 <- Sterm_pandaroo[grepl("transposas",ignore.case = TRUE,Sterm_pandaroo$Annotation),]
-TRANSPOSASE_GENES_02 <- Sterm_pandaroo[grepl("^IS",Sterm_pandaroo$Annotation),]
-TRANSPOSASE_GENES_03 <- Sterm_pandaroo[grepl(" insertion sequence",Sterm_pandaroo$Annotation),]
-
-TRANSPOSASE_GENES_total <- rbind(TRANSPOSASE_GENES_01,TRANSPOSASE_GENES_02,TRANSPOSASE_GENES_03)
-
-Sterm_pandaroo_transposase <- Sterm_pandaroo %>% filter(Gene %in% unique(TRANSPOSASE_GENES_total$Gene))
-
-
-extended_gene_dup_transposase <- extended_gene_dup %>% filter(Gene %in% unique(TRANSPOSASE_GENES_total$Gene))
-
-TRANSPOSASE_GENES_total_sub <- TRANSPOSASE_GENES_total %>% select(Gene,Annotation) %>% unique()
-
-extended_gene_dup_transposase_ext <- merge(extended_gene_dup_transposase,TRANSPOSASE_GENES_total_sub, by="Gene")
-
-write.table(extended_gene_dup_transposase_ext,"~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/extended_gene_dup_transposase.csv",sep="\t",quote = FALSE,row.names = FALSE)
 ```
 
 ##### calculate duplication substitution
@@ -15072,6 +14505,8 @@ echo ${uniqNAME}
 #mafft --maxiterate 1000 --globalpair --thread 10  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/Alignements/${uniqNAME}.fasta > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/Alignements/${uniqNAME}_gl.aln
 
 mafft --maxiterate 1000 --genafpair --thread 10  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/Alignements/${uniqNAME}.fasta > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/Alignements/${uniqNAME}_genefpair.aln
+
+
 
 done
 
@@ -15158,61 +14593,35 @@ added_final <- rbind(added_final,final_data)
 }
 
 added_final
-#write.csv(added_final,"~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/final_analysis_genefpair_Alignement.txt",quote = FALSE,row.names = FALSE)
-
-##-----------------------------
-#read the files
-##-----------------------------
-
-analysis_genefpair <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/final_analysis_genefpair_Alignement.txt") %>% mutate(alignment=gsub("_genefpair.aln","",alignment)) %>% mutate(type="genefpair")
-
-analysis_global <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/final_analysis_global_Alignement.txt") %>% mutate(alignment=gsub("_gl.aln","",alignment)) %>% mutate(type="global")
-
-analysis_local <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/final_analysis_local_Alignement.txt") %>% mutate(alignment=gsub(".aln","",alignment)) %>% mutate(type="local")
+write.csv(added_final,"~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/final_analysis_genefpair_Alignement.txt",quote = FALSE,row.names = FALSE)
 
 
-analysis_all <- rbind(analysis_genefpair,analysis_global,analysis_local) %>% mutate(fac_vallied=100*(n.valid.sites/n.sites))
-
-ggplot(analysis_all,aes(x=fac_vallied,color=type,fill=type))+geom_density(alpha=0.5)
-ggplot(analysis_all,aes(x=fac_vallied,y=n.sites,color=type,fill=type))+geom_point()+theme_classic()+facet_wrap(~type)
-
-###---------------------------
-#take only > 75% alginment
-###---------------------------
 
 
-analysis_filtered <- analysis_global %>% mutate(fac_vallied=100*(n.valid.sites/n.sites)) %>% filter(fac_vallied>75) %>% mutate(fraction_syn=synonymous/n.valid.sites)
+# dir.create("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/test_r/")
+# files_2_move <- list.files("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/test/", full.names = TRUE, recursive = TRUE)[2:3]
+# file.copy(files_2_move, "~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/test_r/")
+# unlink("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/test_r/", recursive = TRUE)
+# 
+
+##-----------------------------------------------------------------calculate
+
+# GENOME.class <- readData("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/S12273.10.aln")
+# GENOME.class <- readData("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/Sterm/")
+GENOME.class <- readData("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/02_geneDuplication/test//")
+# GENOME.class
+# GENOME.class@n.sites
+# GENOME.class@region.names
+# GENOME.class@region.data
+# sum(GENOME.class@region.data@synonymous)
+# GENOME.class@region.data@transitions
 
 
-plotSynonomous <- ggplot(analysis_filtered,aes(x=fraction_syn,color=type,fill=type))+geom_density(alpha=0.5)+theme_classic()+theme(legend.position = "none")+labs(x="dS, synonymous substitution rate")
-plotSynonomous
+final_data <- data.frame(get.sum.data(GENOME.class)) %>% rownames_to_column(., var = "alignment") %>% as_tibble() %>%
+  cbind(.,synonymous=sapply(GENOME.class@region.data@synonymous, sum))%>%
+  cbind(.,transitions=sapply(GENOME.class@region.data@transitions, sum))
 
-  png("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plot_synomous_transposons.png", width = 2200, height = 1500,res=300)
-# pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/Sterm_phylogney_total.pdf",width=10,height=10)
-
-plotSynonomous
-
-
-dev.off()
-
-##--------------------------------------
-#only transposase
-##--------------------------------------
-
-extended_gene_dup_transposase <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/extended_gene_dup_transposase.csv", 
-    delim = "\t", escape_double = FALSE, 
-    trim_ws = TRUE)
-
-analysis_filtered_tranpos <- analysis_filtered %>% mutate(grouping=ifelse(alignment %in% unique(extended_gene_dup_transposase$uniqName),"transposase","other"))
-
-
-analysis_filtered_tranpos_ext <- merge(analysis_filtered_tranpos,extended_gene_dup_transposase,by.x="alignment",by.y="uniqName")
-
-
-analysis_filtered_tranpos_ext_02 <- analysis_filtered_tranpos_ext %>% mutate(grouping_2=ifelse(grepl("IS3 ",Annotation),"transposase","other"))
-
-plotSynonomous <- ggplot(analysis_filtered_tranpos_ext_02,aes(x=fraction_syn,color=type,fill=grouping_2))+geom_density(alpha=0.5)+theme_classic()+theme(legend.position = "right")+labs(x="dS, synonymous substitution rate")
-plotSynonomous
+final_data
 
 ```
 
@@ -16518,6 +15927,7 @@ awk 'BEGIN{RS=">"}NR>1{sub("\n","\t"); gsub("\n",""); print RS$0}' all_rRNAopero
 done
 
 seq_length.py all_rRNAoperon_prep.fasta
+
 ```
 
 ##### lactobacillus
@@ -16805,253 +16215,6 @@ I am doing the following analysis:
 1. parSNP phylogeny. 
 2. ...
 
-
-### 16S
-
-
-```{bash}
-
-
-
-#for speciess in $(echo "Ldel Sterm Lhelv")
-for speciess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/|grep "^01" -v |sed "s/-.*$//g" |sort|uniq)
-
-do
-echo ${speciess}
-ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/ |grep "${speciess}" -c
-
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/
-
-panaroo -t 20 -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_GFF/${speciess}-*.gff -o /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/01_Panarooo/${speciess}/ --clean-mode strict
-
-done
-
-
-
-
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/
-mkdir -p //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/
-
-
-#cd 
-speciess=Sterm
-for genomess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FNA/ |grep ".fna$" |sed 's/.fna//g' |grep "Streptococcus_thermophilus-")
-do
-echo ${genomess}
-cat  //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FNA//${genomess}.fna |barrnap --threads 37 -o //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa 
-
-#speciess=$(grep "${genomess}" /work/Project/2020_StarterCultureDiversity/01_pseudogenes/01_REFERENCE_GEN0MES/broad_phylogen/log/StermDownloadgenomes.names |cut -f 2)
-
-samtools faidx //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa 
-
-
-#rm  /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/final.fna
-f16sss=$(grep "16S" -i //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa   |sed 's/>//g'|head -1)
-
-
-#echo ${f16sss}
-samtools faidx //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa  ${f16sss} > //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_16s.fasta
-
-#sed "s/^>.*$/>16S-${speciess}-${genomess}-${num}/g" /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/tmp.fna >> /work/Project/2020_StarterCultureDiversity/16S_search/16s/Strepto/final.fna
-
-f23sss=$(grep "23S" -i //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_rrna.fa  |sed 's/>//g'|head -1)
-samtools faidx //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_rrna.fa  ${f23sss} > //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_23s.fasta
-sed "s/^>.*$/>23S-${speciess}-${genomess}/g" //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_23s.fasta >> //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//all_23s.ffn
-
-
-f5sss=$(grep "5S" -i //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_rrna.fa  |sed 's/>//g'|head -1)
-samtools faidx //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_rrna.fa  ${f5sss} > //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_5s.fasta
-sed "s/^>.*$/>5S-${speciess}-${genomess}/g" //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//${genomess}_5s.fasta >> //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s//all_5s.ffn
-
-  
-done #16s
-
-
-speciess=Streptococcus
-rm //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_16s.ffn
-for genomess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FNA/ |grep ".fna$" |sed 's/.fna//g' |grep "Streptococcus_thermophilus-")
-do
-echo ${genomess}
-
-seq_length.py //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa
-
-#grep "16S" -c /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/${genomess}_rrna.fa 
-
-#seq_length.py /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/${genomess}_16s.fasta
-
-sed "s/^>.*$/>16S-${speciess}-${genomess}/g" //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/${genomess}_16s.fasta >> //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_16s.ffn
-
-
-echo "================================"
-done
-
-grep ">" //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_16s.ffn
-
-###-----------------------------------------------------------
-#merge the different contigs
-###-----------------------------------------------------------
-speciess=Streptococcus
-cd //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s
-rm all_rRNAoperon.fasta
-for genomess in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/PROKKA_all/01_all_FNA/ |grep ".fna$" |sed 's/.fna//g' |grep "Streptococcus_thermophilus-")
-do
-
-echo ">rRNAoperon-${speciess}-${genomess}" >> all_rRNAoperon.fasta
-grep ">" -v  ${genomess}_16s.fasta >> all_rRNAoperon.fasta
-echo "NNNNNNNNNNNN" >> all_rRNAoperon.fasta
-grep ">" -v  ${genomess}_23s.fasta >> all_rRNAoperon.fasta
-echo "NNNNNNNNNNNN" >> all_rRNAoperon.fasta
-grep ">" -v ${genomess}_5s.fasta >> all_rRNAoperon.fasta
-
-
-##make the assembly fit together nicely
-awk 'BEGIN{RS=">"}NR>1{sub("\n","\t"); gsub("\n",""); print RS$0}' all_rRNAoperon.fasta |sed 's/\t/\n/g' |awk -v FS= '/^>/{print;next}{for (i=0;i<=NF/60;i++) {for (j=1;j<=60;j++) printf "%s", $(i*60 +j); print ""}}' > all_rRNAoperon_prep.fasta
-
-
-done
-
-seq_length.py all_rRNAoperon_prep.fasta
-
-##-------------------------------------
-#add vestibularis
-##-------------------------------------
-
-cp all_rRNAoperon_prep.fasta all_rRNAoperon_prep_withVestibularis.fasta
-
-grep ">" /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta
-
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta
-
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta
-
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta rRNAoperon-Streptococcus-vestibularis >>  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis.fasta
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis.fasta
-
-
-###-------------------------------
-#extract only complete RNA operons
-###-------------------------------
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/complete_rnas.names | awk '{if($3>4000)print $1}'  > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/complete_rnas.names
-
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis.fasta
-
-xargs --arg-file=/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/complete_rnas.names  samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis.fasta >  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta
-
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta
-
-###---------------------------------------------------
-#small test
-###---------------------------------------------------
-
-
-grep "24743" -i /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta
-
-
-rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24736
-rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24743
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24743 >>  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_test.fasta
-
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24736 >>  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_test.fasta
-
-samtools faidx /data/Project/2020_StarterCultureDiversity/11_GENE_sharing_Network/01_REFERENCE_GEN0MES/broad_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta rRNAoperon-Streptococcus-vestibularis >>  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_test.fasta
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_test.fasta
-
-```
-
-
-```{bash}
-##------------------------------------------------------
-#make alignement
-##------------------------------------------------------
-
-cd //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s
-
-rm //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep.fasta.aln
-mafft-linsi --thread 37 --maxiterate 1000   /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta > /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta.aln
-
-
-
-
-##------------------------------------------------------
-#pyhlogeny
-##------------------------------------------------------
-
-
-mkdir -p //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/raxml_tree
-cd //data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/raxml_tree
-
-rm -r *
-
-/home/vincent/anaconda3/bin/raxmlHPC-PTHREADS-AVX2 -f a -x 12345 -p 12345 -# 100 -m GTRCAT -s /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/all_rRNAoperon_prep_withVestibularis_cleaned.fasta.aln -n Streptococcus_all -T 37
-
-
-##------------------------------------------------------
-#move local
-##------------------------------------------------------
-
-mkdir -p /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_16s_strepto_narrow
-
-
-scp -r vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs_and_own/narrow_phylogen/Sterm/genomes/16s/raxml_tree/ /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_16s_strepto_narrow//
-
-```
-
-
-```{r}
-
-##---------------------------------
-#identify  most recent common ancestor (MRCA)
-##---------------------------------
-
-library(ape)
-library(ggtree)
-library(tidyverse)
-library(tidytree)
-library(treeio)
-library(TreeTools)
-library(phangorn)
-
-Sterm_tree_raw <- read.nexus("/home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_16s_strepto_narrow_test//raxml_tree_test/RAxML_bipartitions.Streptococcus_all_curated", tree.names = NULL, force.multi = FALSE)
-tree_phylo <- Sterm_tree_raw %>% as.phylo()
-tree_phylo$tip.label
-
-getMRCA(tree_phylo, c("rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24736","rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24739","rRNAoperon-Streptococcus-Streptococcus_thermophilus-S24743"))
-
-
-
-
-numbers <- Descendants(tree_phylo, 9, type = "tips") %>% unlist()
-numbers
-tree_phylo$tip.label[numbers]
-
-
-
-
-p <- ggtree(tree) + geom_tiplab()
-viewClade(p, MRCA(p, "I", "L"))
-
-
-getMRCA(tree_phylo, c("S24736","S24758"))
-
-numbers <- Descendants(tree_phylo, 156, type = "tips") %>% unlist()
-numbers
-tree_phylo$tip.label[numbers]
-
-
-
-
-```
 
 
 ### Poppunk
@@ -20504,508 +19667,6 @@ mmseqs easy-cluster examples/DB.fasta clusterRes tmp --min-seq-id 0.5 -c 0.8 --c
 ```
 
 ##Gene/Species tree
-
-#### Xavier Didelots approach
-
-example from [staph aureus](https://xavierdidelot.github.io/BactDating/articles/Staph.html#initialisation-1).
-```{r}
-##-----------------------------
-#test
-##-----------------------------
-
-library(BactDating)
-library(ape)
-set.seed(0)
-data(staph)
-plot(staph$tree, show.tip.label = F)
-axisPhylo(backward = F)
-
-
-### dates in the same order as tip.label  
-staph$tree$tip.label
-staph$dates
-staph$tree
-
-
-res=roottotip(staph$tree,staph$dates)
-
-##----------run Dactdate
-res=bactdate(unroot(staph$tree),staph$dates,nbIts=1000)
-plot(res,'treeCI',show.tip.label = F)
-
-plot(res,'trace')
-
-
-plot(res,'treeRoot',show.tip.label=F)
-
-
-```
-
-[This tutorial ](https://xavierdidelot.github.io/BactDating/articles/yourData.html) will enable us to do the analysis on our data
-
-##### 0. Meta-data
-
-For Sterm I already have a metadata file. However for Ldel (or Lhelv) not yet.
-
-```{bash}
-
-```
-
-
-
-##### 1. create a starting tree
-
-
-1.orthofinder
-
-```{bash}
-###-----------------------------------------
-##only Metagenome
-###-----------------------------------------
-
-species=Sterm
-
-for species in $(echo "Ldel Sterm")
-do
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-mkdir -p  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-
-#leterzzz=$(echo $species |head -c 1)
-
-cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/${species}_references/PROKKA_FAA/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-
-cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${species}/01_all_FAA/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-done
-
-rm /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/Out-sali.faa
-
-###-----------------------------------------
-##remove outgroups and meta
-###-----------------------------------------
-
-species=Sterm
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/Out-vest.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/S202SMAG.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/  
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/S50.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/  
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/S72.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/  
-  
-species=Ldel
-mkdir -p /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/Out-helv.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/
-mv /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/S202SMAG.faa /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/NotUsed/   
-  
-
-
-###-----------------------------------------
-##orthorfinder
-###-----------------------------------------
-#for species in $(echo "Ldel Sterm"|tail -1)
-species=Ldel
-mkdir -p    
-#cp -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/Ldel/OrthoFinder/Results_Feb11/ /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/
-
-for species in $(echo "Sterm Ldel")
-do
-
-rm -r /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/
-#mkdir -p  /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/
-
-
-    orthofinder -f /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/ \
-      -t 32 \
-      -o    /${species}/ \
-      -a 32
-
-done # species
-
-
-```
-
-1.Kirstin's approach
-
-
-```{bash}
-date=Results_Mar11
-species=Sterm
-#/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/Results_Jul28/
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-echo "==========================================="
-echo -e ${species}
-perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/get_singlecp_orthologs.pl /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Orthogroups/Orthogroups.txt > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Orthogroups/Orthogroups_SCOG.txt
-
-wc -l /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Orthogroups/Orthogroups_SCOG.txt
-wc -l /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Orthogroups/Orthogroups.txt
-
-done
-```
-
-Here, I make a directory containing the fna and faa files of all genomes with the file name corresponding to the locus tag. 
-
-```{bash}
-
-
-for species in $(echo "Ldel Sterm")
-do
-#rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-#mkdir -p  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-
-rm -r /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FFN/${species}/
-mkdir -p  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FFN/${species}/
-
-leterzzz=$(echo $species |head -c 1)
-
-#cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/${species}_references/PROKKA_FAA/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-
-#cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${species}/01_all_FAA/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/
-
-cp  /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/${species}_references/PROKKA_FFN/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FFN/${species}/
-
-cp /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/annotation/PROKKA/${species}/01_all_FFN/* /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FFN/${species}/
-
-#/data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/NCBI_Refs/${species_short}/PROKKA_FAA/
-done
-  
-###--------------------
-for species in $(echo "Ldel Sterm")
-do
-rm -r /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/
-mkdir -p /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/
-for genomesss in $(ls /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/ |grep ".faa$"|sed 's/.faa//g'|grep -v "Out-sali")
-do
-locusTagsss=$(head -1 /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/${genomesss}.faa|cut -d '_' -f 1|sed 's/>//g')
-echo -e "This  genome : " ${genomesss} " has the following locus Tag : "${locusTagsss}
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FAA/${species}/${genomesss}.faa > \
-/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${locusTagsss}.faa
-
-cat /data/Project/2020_StarterCultureDiversity/10_REFERENCE_GEN0MES/genomes/combined_ncbi_own/FFN/${species}/${genomesss}.ffn > \
-/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${locusTagsss}.ffn
-
-
-done
-done
-
-##------=================================================================
-#extract orthogroups
-##------=================================================================
-
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/
-perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/extract_orthologs.pl /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Orthogroups/Orthogroups_SCOG.txt --folder ${species}
-
-done
-```
-
-align protein families
-
-```{bash}
-
-
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-for genesss in $(ls |grep ".faa$" |sed 's/.faa//g'|grep -v "Out-sali" )
-do
-rm /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}/${genesss}.aln.fasta
-mafft --thread 37 --maxiterate 1000  --auto /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}/${genesss}.faa > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}/${genesss}_aln.fasta
-
-done 
-
-done #species
-```
-here I back translate the faa alignment to dna.
-
-```{bash}
-
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/aln_aa_to_dna.pl
-
-done
-
-```
-
-With perl: prune alignments (removing columns represented by less than 50% of the sequences)
-
-
-```{bash}
-
-
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/prune_aln.pl
-
-done
-
-##================================================================
-#remove all infomration (except genome info) from multifasta header
-##================================================================
-
-for species in $(echo "Ldel Sterm"|tail -1)
-do
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-for genesss in $(ls |grep "_aln_prune.fasta$" |sed 's/_aln_prune.fasta//g' )
-do
-sed -i "s/_0.*//" ${genesss}_aln_prune.fasta 
-
-done
-done
-
-
-##-------------ldel names too long --> shorten
-
-species=Ldel
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_ncbi_own_ZOOMED/${species}/${date}/Genomes_FAA_FNA/${species}
-
-for genesss in $(ls |grep "_aln_prune.fasta$" |sed 's/_aln_prune.fasta//g' )
-do
-sed -i 's/-DSM-/-/g' ${genesss}_aln_prune.fasta 
-sed -i 's/-KCTC-/-/g' ${genesss}_aln_prune.fasta 
-done
-
-
-```
-With perl: Concatenate pruned alignments
-```{bash}
-  
-#  for species in $(echo "Ldel Sterm"|tail -1)
-  for species in $(echo "Sterm Ldel"|tail -1)
-  do
-  echo -e ${species}
-  cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-  perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/cat_align.pl > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}.phylip
-  
-  done
-  
-    for species in $(echo "Sterm Ldel"|tail -1)
-  do
-  echo -e ${species}
-  cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/Genomes_FAA_FNA/${species}
-  perl /data/Project/2020_StarterCultureDiversity/99_log/aln_aa_to_dna/vincent/cat_align_2fasta.pl > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta
-  
-  done
-  
-```
-With RAxML: infer the phylogeny
-```{bash}
-mkdir -p /data/Project/2020_StarterCultureDiversity/11_referenceTree/raxml_all_combined_NCBI_own/
-
-  for species in $(echo "Ldel Sterm"|tail -1)
-    for species in $(echo "Ldel"|tail -1)
-
-#   for species in $(echo "Sterm"|tail -1)
-  do
-  echo -e ${species}
-  mkdir -p  /data/Project/2020_StarterCultureDiversity/11_referenceTree/raxml_all_combined_NCBI_own/${species}
-cd /data/Project/2020_StarterCultureDiversity/11_referenceTree/raxml_all_combined_NCBI_own/${species}
-
-rm -r *${species}_all*
-
-#/home/vincent/anaconda3/bin/raxmlHPC-PTHREADS-AVX2 -f a -x 12345 -p 12345 -# 100 -m GTRCAT -s /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta -n ${species}_all -T 37
-/home/vincent/anaconda3/bin/raxmlHPC-PTHREADS-AVX2 -f a -x 12345 -p 12345 -# 100 -m GTRCAT -s /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta -n ${species}_all -T 37
-
-done
-```
-
-prepare tip.names file
-
-
-```{bash}
-rm -r /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/names.strains.txt
-for species in $(echo "Sterm Ldel"|tail -1)
-do
-grep ">" /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta| sed 's/\/.*//g'| sed 's/>//g'  |awk -v namezzz="$species" '{OFS="\t"}{print namezzz,$1}' >> /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/names.strains.txt
-seq_length.py /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta
-done
-```
-
-
-
-calculate kappa============================
-
-
-like [here](https://github.com/xavierdidelot/ClonalFrameML/issues/95)
-
-
-Sterm-----------------------
-
-alpha: 0.020000
-Tree-Length: 0.268312
-rate A <-> C: 1.264669
-rate A <-> G: 3.668788
-rate A <-> T: 0.752548
-rate C <-> G: 0.588894
-rate C <-> T: 5.357598
-rate G <-> T: 1.000000
-
-freq pi(A): 0.292688
-freq pi(C): 0.189221
-freq pi(G): 0.220427
-freq pi(T): 0.297664
-
-
-```{r}
-(3.668788+5.357598)/(1.264669+0.752548+0.588894+1.000000)
-```
-Ldel-----------------------
-Tree-Length: 0.104705
-rate A <-> C: 1.197734
-rate A <-> G: 3.026860
-rate A <-> T: 0.483401
-rate C <-> G: 0.491727
-rate C <-> T: 5.401485
-rate G <-> T: 1.000000
-
-freq pi(A): 0.253359
-freq pi(C): 0.264227
-freq pi(G): 0.269964
-freq pi(T): 0.212450
-```{r}
-(3.026860+5.401485)/(1.197734+0.483401+0.491727+1.000000)
-```
-
-##### 2. create a ClonalFrameML phylogeny
-
-```{bash}
-
-
-conda create --name ClonalFrameML
-
-conda install -c conda-forge -c bioconda -c defaults clonalframeml
-
-conda activate ClonalFrameML
-
-ClonalFrameML newick_file seq_file output_prefix [OPTIONS]
-
-##-----------------Sterm-----------------------------
-
-phylip2fasta.sh in=/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}.phylip out=/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}.fasta
-
-
-conda activate ClonalFrameML
-
-date=Results_Mar11
-species=Sterm
-
-rm -r /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML
-mkdir -p /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML
-
-sed 's/\/.*//g' /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta
-
-
-ClonalFrameML /data/Project/2020_StarterCultureDiversity/11_referenceTree/raxml_all_combined_NCBI_own/${species}/RAxML_bestTree.${species}_all \
-       /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta  \
-      /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML/${species}_clonal_tree -emsim 100  -kappa 2.50308 > \
-      /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML/${species}_clonal_tree.log.txt
-
-
-##-----------------ldel-----------------------------
-
-
-conda activate ClonalFrameML
-
-date=Results_Mar11
-species=Ldel
-
-rm -r /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML
-mkdir -p /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML
-
-sed 's/\/.*//g' /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg.fasta > /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta
-
-seq_length.py /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta
-
-
-ClonalFrameML /data/Project/2020_StarterCultureDiversity/11_referenceTree/raxml_all_combined_NCBI_own/${species}/RAxML_bestTree.${species}_all \
-       /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/${date}/${species}_alg_cleaned.fasta  \
-      /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML/${species}_clonal_tree -emsim 100  -kappa 2.50308 > \
-      /data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/${species}/ClonalFrameML/${species}_clonal_tree.log.txt
-
-
-```
-
-move local
-
-```{bash}
-
-
-
-mkdir -p /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_ClonalFrameML/
-
-
-scp -r vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/names.strains.txt /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_ClonalFrameML//
-
-scp -r vincent@130.223.51.66:/data/Project/2020_StarterCultureDiversity/11_referenceTree/Orthofinder_combined_NCBI_own/Sterm/ClonalFrameML/Sterm_clonal_tree* /home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_ClonalFrameML//
-```
-
-
-##### 3. BactDating
-
-```{r}
-##-------------------------------Sterm
-library(ape)
-
-library(BactDating)
-
-t=loadCFML("/home/vincent/Desktop/Projects//2020_StarterCultureDiversity/11_referenceTree_new_ClonalFrameML//Sterm_clonal_tree")
-
-t$tip.label
-
-
-plot(t, show.tip.label = T)
-axisPhylo(backward = F)
-
-##------------import names
-
-library(tidyverse)
-names_strains <- read_delim("~/Desktop/Projects/2020_StarterCultureDiversity/11_referenceTree_new_ClonalFrameML/names.strains.txt", 
-    delim = "\t", escape_double = FALSE, 
-    col_names = c("Species","strain"), trim_ws = TRUE)
-
-##------------import metaData
-meta_sterm <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/phylogeny_info/20200728_NCBI_log_shortNames_final_sterm_edited_extended.csv")
-colnames(meta_sterm)
-meta_sterm$shortName_new <- meta_sterm$shortName %>% gsub("^","S",.) %>% gsub("^SS","S",.)
-names_strains$strain
-
-t$tip.label[!t$tip.label %in% meta_sterm$shortName_new]
-
-meta_sterm_onlySterm <- meta_sterm[which(meta_sterm$shortName_new %in% t$tip.label),]
-
-meta_sterm_onlySterm <-meta_sterm_onlySterm[match(t$tip.label,meta_sterm_onlySterm$shortName_new),]
-
-
-d <- meta_sterm_onlySterm$extraction_time
-names(d) <- meta_sterm_onlySterm$shortName_new
-
-##------------make dated tree
-
-res=bactdate(t,d)
-
-# res=bactdate(t,d,nbIts=1e5) #increase number of cycles
-
-
-rooted=initRoot(t,d)
-r=roottotip(t,d)
-
-##------------plot
-res=bactdate(unroot(t),d,nbIts=1000000)
-plot(res,'treeCI',show.tip.label = F)
-
-
-plot(res,'trace')
-
-mcmc=as.mcmc(res)
-
-```
-
 
 #### MMseqs2
 
