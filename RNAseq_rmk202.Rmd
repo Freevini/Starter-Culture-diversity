@@ -986,6 +986,8 @@ normalized_counts_matrix <- counts(dds, normalized=TRUE)
 
 ```{r}
 ##====================================================================================Lactobacillus delbrueckii===============================================
+library(tidyverse)
+ library(plotly)
 
 ##---------------
 ##import data
@@ -1015,7 +1017,6 @@ merge_RNAseq_normalized$time_num <- gsub("h","",merge_RNAseq_normalized$time)
 write.table(merge_RNAseq_normalized, file="~/Desktop/Projects/2019_RNAseq_rmk202/03_HTseq_all_pseudo/normalized_counts_merged.txt", sep="\t", quote=F, row.names = FALSE,col.names=TRUE)
 
 ##====================================================================================Plot===============================================
-library(ggplot2)
 
 merge_RNAseq_normalized <- read_delim("/home/vincent/Desktop/Projects/2019_RNAseq_rmk202/03_HTseq_all_pseudo/normalized_counts_merged.txt",  "\t", escape_double = FALSE, trim_ws = TRUE)
 
@@ -1104,8 +1105,8 @@ ggplot(merge_RNAseq_cumulative_sterm,aes(x=median_count))+geom_density()+theme_c
 ##median vs. sd
 
 plot_point <- ggplot(merge_RNAseq_cumulative_sterm,aes(x=median_count,y=sd_count_rel))+geom_point()+theme_classic()+coord_trans(x="log10",y="log10")
-install.packages("ggplotly")
-library(ggplotly)
+# install.packages("ggplotly")
+# library(ggplotly)
 
 fig <- plotly::ggplotly(plot_point)
 fig
@@ -1395,6 +1396,49 @@ plot_point <- ggplot(merge_RNAseq_cumulative_cleaned_eggnog,aes(x=median_count,y
 plot_point
 
 ```
+
+## Pepidase genes
+
+```{r}
+merge_RNAseq_cumulative_cleaned_eggnog_peptidase <- merge_RNAseq_cumulative_cleaned_eggnog %>% as_tibble()  #%>% filter(grepl("pep",Preferred_name))
+
+merge_RNAseq_cumulative_cleaned_eggnog_peptidase[grep("pep",merge_RNAseq_cumulative_cleaned_eggnog_peptidase$Preferred_name,ignore.case = TRUE),]
+
+merge_RNAseq_cumulative_cleaned_eggnog_peptidase$coloring <- "none"
+
+merge_RNAseq_cumulative_cleaned_eggnog_peptidase[grep("pep",merge_RNAseq_cumulative_cleaned_eggnog_peptidase$Preferred_name,ignore.case = TRUE),"coloring"] <- "pep"
+
+table(merge_RNAseq_cumulative_cleaned_eggnog_peptidase$coloring)
+
+plot_point_pep <- ggplot(merge_RNAseq_cumulative_cleaned_eggnog_peptidase,aes(x=median_count,y=sd_count_rel,fill=coloring,color=coloring,size=coloring))+geom_point(alpha=0.5)+theme_classic()+coord_trans(x="log10",y="log10")+facet_grid(~species,scales = "free")+scale_size_manual(values=rev(c(4,0.5)))
+plot_point_pep
+
+
+##----------------------------per timepoint
+merge_RNAseq_cumulative_cleaned_eggnog_peptidase_prep <- merge_RNAseq_cumulative_cleaned_eggnog_peptidase %>% select(-species,-feature)
+
+merge_RNAseq_normalized_extended_ext <- merge_RNAseq_normalized_extended %>% as_tibble() %>% mutate(gene_complete=paste0(species_extensive,"_",gene_short))#%>% left_join(.,merge_RNAseq_cumulative_cleaned_eggnog_peptidase)
+
+
+merge_RNAseq_normalized_extended_ext_full <- left_join(merge_RNAseq_normalized_extended_ext,merge_RNAseq_cumulative_cleaned_eggnog_peptidase_prep) %>% mutate(feature=ifelse(grepl("pep",Preferred_name),"Peptidase","none"))
+# merge_RNAseq_normalized_extended_ext$gene_complete %in% merge_RNAseq_cumulative_cleaned_eggnog_peptidase$gene_complete
+table(merge_RNAseq_normalized_extended_ext_full$feature)
+
+plotPseudogene <- ggplot(merge_RNAseq_normalized_extended_ext_full,aes(x=time,y=norm_count,color=feature))+facet_wrap(~species,ncol=1,scales="free_x")+geom_boxplot(alpha=0.7)+theme_classic()+coord_trans( y="log2")+scale_color_manual(values=c("grey44","grey77"))+
+stat_compare_means(aes(group = feature), label = "p.signif")+labs(x="incubation time",y="normalized gene expression")+theme(legend.title = element_blank())+scale_y_continuous(breaks=c(5,500,50000,1800000))
+plotPseudogene
+# ggplot(merge_RNAseq_normalized_extended,aes(x=feature,y=norm_count,color=feature))+facet_wrap(time~species,ncol=16,scales="free_x")+geom_boxplot()+theme_classic()+coord_trans( y="log2")+scale_color_manual(values=c("grey44","grey77"))
+
+
+pdf("~/Desktop/Projects/2020_StarterCultureDiversity/97_Images/plotPseudogene_expression.pdf",width=7,height=4.5)
+
+plotPseudogene
+
+dev.off()
+
+```
+
+
 
 ##prepare gene tables
 somehow in the appendix there are the wrong gene tables prepared. Therefore I will prepare the now gene tables for the R-shiny. 
