@@ -31,13 +31,14 @@ The scripts are divided into 8 subscripts. Each on is saved and compiled in the 
 
 All data is stored on zenodo under the following doi:
 
-xx
+10.5281/zenodo.10783581
 
 The genomic data is further stored under the following Bioprojects:
 
 - PRJNA717134
 - PRJNA717134
 - PRJNA1048529
+- PRJNA1083966
 
 
 ## Disclaimer

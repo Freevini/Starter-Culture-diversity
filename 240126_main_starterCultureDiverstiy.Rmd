@@ -18394,6 +18394,7 @@ origin_genomes_all <- read_csv("~/Desktop/Projects/2020_StarterCultureDiversity/
 names_origin_poppunk <- merge(Poppunk_out_sub_start_final,origin_genomes_all,by.x="genome",by.y="name")
 names_origin_poppunk[order(names_origin_poppunk$groupAssignment),]
 
+
 ```
 
 ## Transposase activity
